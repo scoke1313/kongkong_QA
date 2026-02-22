@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>콩콩춘식 - 최종 디자인 튜닝 완료 (이펙트 복구)</title>
+    <title>콩콩춘식 - 최종 UI 최적화</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -27,14 +27,14 @@
         /* --- 결과 화면 --- */
         #result-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); /* 딤드 65% */
+            background: rgba(0,0,0,0.65); 
             z-index: 3000; display: none;
         }
         
         .result-card {
             position: absolute;
             top: 50%; left: 50%;
-            width: 348px; /* 버튼 합계 너비에 맞춤 (132 + 10 + 206) */
+            width: 348px; 
             background: #FFF; 
             border-radius: 22px; 
             padding: 32px 24px;
@@ -64,10 +64,9 @@
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
-        /* 하단 버튼 영역 */
         .result-buttons { 
             position: absolute;
-            bottom: 60px; /* 하단 여백 60px */
+            bottom: 60px; 
             left: 50%;
             transform: translateX(-50%);
             display: flex; gap: 10px; 
@@ -80,7 +79,7 @@
             font-size: 18px; font-weight: 700; cursor: pointer; 
         }
         
-        /* 버튼 개별 너비 설정 */
+        /* 버튼명 변경 반영 */
         #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
         #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
 
@@ -136,7 +135,7 @@
         </div>
         
         <div class="result-buttons">
-            <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인 화면 가기</button>
+            <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인</button>
             <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
         </div>
     </div>
@@ -201,7 +200,7 @@ function resetGame() {
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
     initPlatforms();
-    update(); // 멈춘 루프 재시작
+    update(); 
 }
 
 function showResult() {
@@ -322,18 +321,8 @@ function update() {
                 let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                 if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                     p.itemCollected = true;
-                    // [복구 완료] 클로버를 먹었을 때 이펙트 발생!
-                    if (p.item === 'clover') { 
-                        cloverCount++; 
-                        document.getElementById('rate-board').innerText = `${cloverCount}`; 
-                        spawnPickupEffect(ix + 25, iy); 
-                    } 
-                    else if (p.item === 'gold') { 
-                        isSuperJumping = true; 
-                        velocityY = PHYSICS.superJumpPower; 
-                        document.getElementById('canvas-container').classList.add('gold-glow'); 
-                        loadRive('kongsik_ingame_air.riv'); 
-                    }
+                    if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
+                    else if (p.item === 'gold') { isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
                 }
             }
             if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
