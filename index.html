@@ -47,7 +47,6 @@
         .res-info-label img { width: 22px; height: 22px; margin-right: 8px; }
         .res-info-value { font-size: 18px; font-weight: 800; color: #333; }
 
-        /* [UPDATE] 금리 폰트 사이즈 분리 정렬 */
         .res-total-value { 
             display: flex; align-items: baseline; justify-content: center;
             color: #333; margin: 20px 0 10px; 
@@ -172,13 +171,19 @@ function startGame() {
     initPlatforms();
 }
 
-// [UPDATE] 재도전 시 바로 게임 초기화 로직
+// [UPDATE] 재도전 로직 수정: 춘식이 렌더링을 확실히 보장
 function resetGame() {
-    document.getElementById('result-screen').style.display = 'none';
-    document.getElementById('result-screen').classList.remove('show');
-    isPlaying = true; isGameOver = false;
+    const screen = document.getElementById('result-screen');
+    screen.style.display = 'none';
+    screen.classList.remove('show');
+    
+    // 초기화
+    isGameOver = false;
+    isPlaying = true;
     isSuperJumping = false;
+    lastLoadedFile = ""; // 리브 파일 강제 재로드 유도
     document.getElementById('canvas-container').classList.remove('gold-glow');
+    
     initPlatforms();
 }
 
@@ -200,7 +205,15 @@ function loadRive(fileName) {
     if (lastLoadedFile === fileName) return;
     lastLoadedFile = fileName;
     if (riveInstance) riveInstance.cleanup();
-    riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
+    riveInstance = new rive.Rive({ 
+        src: fileName, 
+        canvas: document.getElementById('canvas'), 
+        autoplay: true, 
+        stateMachines: 'State Machine 1', 
+        onLoad: () => {
+            riveInstance.resizeDrawingSurfaceToCanvas();
+        } 
+    });
 }
 
 const setInput = (key, isDown, btn) => { if(isGameOver) return; keys[key] = isDown; if(btn) btn.classList.toggle('ctrl-pressed', isDown); };
@@ -258,23 +271,18 @@ function initPlatforms() {
     let lastY = 752;
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
     platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
+    
+    // 춘식이 리로드
     loadRive('kongsik_ingame_air.riv');
-}
-
-function spawnPickupEffect(x, y) {
-    const eff = document.createElement('div');
-    eff.className = 'pickup-effect';
-    eff.style.left = (x - 80) + 'px'; eff.style.top = (y - 40) + 'px';
-    document.getElementById('game-stage').appendChild(eff);
-    setTimeout(() => { eff.style.transform = 'translateY(-80px)'; eff.style.opacity = '0'; }, 10);
-    setTimeout(() => eff.remove(), 800);
 }
 
 function update() {
     if (!isPlaying) { if(!isGameOver) requestAnimationFrame(update); return; }
+    
     if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
     if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
     posX = Math.max(-153, Math.min(153, posX));
+    
     velocityY += isSuperJumping ? PHYSICS.gravity * 0.5 : PHYSICS.gravity;
     currentY += velocityY;
     mouseAnimFrame = (mouseAnimFrame + 1) % 20;
@@ -312,7 +320,7 @@ function update() {
                 let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                 if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                     p.itemCollected = true;
-                    if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
+                    if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; } 
                     else if (p.item === 'gold') { isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
                 }
             }
