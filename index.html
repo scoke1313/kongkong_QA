@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>콩콩춘식 - 챌린지 결과 고도화</title>
+    <title>콩콩춘식 - 결과창 고도화 및 재시작 픽스</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -24,23 +24,31 @@
             background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001;
         }
 
-        /* --- 결과 화면 --- */
+        /* --- 결과 화면 (디테일 튜닝) --- */
         #result-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.65); /* 딤드 65% */
             z-index: 3000; display: none;
-            flex-direction: column; justify-content: center; align-items: center;
+            /* Flex 제거하고 absolute 정렬 사용 */
         }
+        
         .result-card {
-            width: 345px; /* 좌우 마진 24px 적용 */
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 345px; /* 좌우 마진 24px (393 - 48) */
             background: #FFF; border-radius: 30px; padding: 32px 24px;
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             box-sizing: border-box;
-            transform: translateY(30px); opacity: 0; transition: all 0.4s ease-out;
+            transform: translate(-50%, calc(-50% + 30px)); /* 애니메이션 시작점 */
+            opacity: 0; transition: all 0.4s ease-out;
         }
-        #result-screen.show .result-card { transform: translateY(0); opacity: 1; }
+        #result-screen.show .result-card { 
+            transform: translate(-50%, -50%); /* 정확히 세로 중앙 정렬 */
+            opacity: 1; 
+        }
         
-        .res-title { font-size: 20px; font-weight: 700; color: #000; margin-bottom: 24px; }
+        /* 폰트 굵기 700 -> 600으로 한 단계 낮춤 */
+        .res-title { font-size: 20px; font-weight: 600; color: #000; margin-bottom: 24px; } 
         
         .res-info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; }
         .res-info-label { display: flex; align-items: center; font-size: 16px; font-weight: 700; color: #333; }
@@ -48,21 +56,29 @@
         .res-info-value { font-size: 18px; font-weight: 800; color: #333; }
 
         .res-total-value { 
-            font-size: 58px; font-weight: 900; color: #333; 
-            margin: 20px 0 10px; 
-            font-family: 'Poetsen One', sans-serif;
+            display: flex; align-items: baseline; justify-content: center;
+            color: #333; margin: 20px 0 10px; 
+            font-family: 'Poetsen One', sans-serif; /* 폰트 일괄 적용 */
             letter-spacing: -1px;
         }
+        #res-rate-num { font-size: 46px; }
+        #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
+        /* 하단 버튼 영역 */
         .result-buttons { 
+            position: absolute;
+            bottom: 60px; /* 하단 여백 60px */
+            left: 50%;
+            transform: translateX(-50%);
             display: flex; gap: 10px; 
-            width: 345px; 
-            margin-top: 20px; 
+            width: 345px; /* 팝업창 폭과 정확히 일치 */
             box-sizing: border-box;
         }
-        .btn-res { flex: 1; height: 64px; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; }
-        #btn-go-main { background: #2D2D2D; color: #FFF; } 
-        #btn-retry { background: #F68679; color: #FFF; } 
+        /* 버튼 굵기 800 -> 700으로 한 단계 낮춤 */
+        .btn-res { flex: 1; height: 64px; border: none; border-radius: 16px; font-size: 18px; font-weight: 700; cursor: pointer; }
+        
+        #btn-go-main { background: #2D2D2D; color: #FFF; } /* 좌측 검정 */
+        #btn-retry { background: #F68679; color: #FFF; } /* 우측 핑크 */
 
         /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
@@ -110,11 +126,14 @@
                 <div class="res-info-label"><img src="clover_s.png" alt="clover"> 클로버 획득</div>
                 <div class="res-info-value" id="res-clover">0개</div>
             </div>
-            <div class="res-total-value" id="res-total">0.00%</div>
+            <div class="res-total-value">
+                <span id="res-rate-num">0.00</span><span id="res-rate-percent">%</span>
+            </div>
         </div>
+        
         <div class="result-buttons">
             <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인 화면 가기</button>
-            <button class="btn-res" id="btn-retry" onclick="location.reload();">재도전</button>
+            <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
         </div>
     </div>
 
@@ -132,7 +151,6 @@
 </div>
 
 <script>
-// 이미지 프리로딩
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
@@ -168,17 +186,41 @@ function startGame() {
     initPlatforms();
 }
 
+// [FIX] 완벽한 게임 재시작 로직
+function resetGame() {
+    const screen = document.getElementById('result-screen');
+    screen.style.display = 'none';
+    screen.classList.remove('show');
+    
+    // 키 입력 및 게임 상태 초기화
+    keys = {};
+    isGameOver = false;
+    isPlaying = true;
+    isSuperJumping = false;
+    
+    lastLoadedFile = ""; // Rive 강제 리로드 유도
+    document.getElementById('canvas-container').classList.remove('gold-glow');
+    
+    // 스테이지 재구성
+    initPlatforms();
+    
+    // ★ 가장 중요한 부분: 죽어있던 애니메이션 루프를 다시 깨워줌 ★
+    update();
+}
+
 function showResult() {
-    isPlaying = false; isGameOver = true;
+    isPlaying = false; 
+    isGameOver = true; // 여기서 update 루프가 정지됨
+    
     const finalDist = Math.floor(score * 0.01);
     const totalRate = (score * 0.0001) + (cloverCount * 0.1);
     
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    document.getElementById('res-total').innerText = `${totalRate.toFixed(2)}%`;
+    document.getElementById('res-rate-num').innerText = totalRate.toFixed(2);
     
     const screen = document.getElementById('result-screen');
-    screen.style.display = 'flex';
+    screen.style.display = 'block'; // absolute 레이아웃을 위해 flex 대신 block으로 변경
     setTimeout(() => screen.classList.add('show'), 10);
 }
 
@@ -239,6 +281,7 @@ function initPlatforms() {
     score = 0; cloverCount = 0; currentY = 0; velocityY = 0; posX = 0; woodParticles = []; bgScrollY = 0; maxReachY = 0;
     document.getElementById('score-board').innerText = "0m";
     document.getElementById('rate-board').innerText = "0";
+    document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
     let lastY = 752;
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
