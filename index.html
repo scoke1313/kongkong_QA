@@ -27,12 +27,12 @@
         /* --- 결과 화면 --- */
         #result-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); 
+            background: rgba(0,0,0,0.65); /* 딤드 65% */
             z-index: 3000; display: none;
             flex-direction: column; justify-content: center; align-items: center;
         }
         .result-card {
-            width: 345px; 
+            width: 345px; /* 좌우 마진 24px 적용 */
             background: #FFF; border-radius: 30px; padding: 32px 24px;
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             box-sizing: border-box;
@@ -48,17 +48,15 @@
         .res-info-value { font-size: 18px; font-weight: 800; color: #333; }
 
         .res-total-value { 
-            display: flex; align-items: baseline; justify-content: center;
-            color: #333; margin: 20px 0 10px; 
+            font-size: 58px; font-weight: 900; color: #333; 
+            margin: 20px 0 10px; 
             font-family: 'Poetsen One', sans-serif;
             letter-spacing: -1px;
         }
-        #res-rate-num { font-size: 46px; }
-        #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
         .result-buttons { 
             display: flex; gap: 10px; 
-            width: 345px;
+            width: 345px; 
             margin-top: 20px; 
             box-sizing: border-box;
         }
@@ -112,13 +110,11 @@
                 <div class="res-info-label"><img src="clover_s.png" alt="clover"> 클로버 획득</div>
                 <div class="res-info-value" id="res-clover">0개</div>
             </div>
-            <div class="res-total-value">
-                <span id="res-rate-num">0.00</span><span id="res-rate-percent">%</span>
-            </div>
+            <div class="res-total-value" id="res-total">0.00%</div>
         </div>
         <div class="result-buttons">
             <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인 화면 가기</button>
-            <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
+            <button class="btn-res" id="btn-retry" onclick="location.reload();">재도전</button>
         </div>
     </div>
 
@@ -136,6 +132,7 @@
 </div>
 
 <script>
+// 이미지 프리로딩
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
@@ -171,22 +168,6 @@ function startGame() {
     initPlatforms();
 }
 
-// [UPDATE] 재도전 로직 수정: 춘식이 렌더링을 확실히 보장
-function resetGame() {
-    const screen = document.getElementById('result-screen');
-    screen.style.display = 'none';
-    screen.classList.remove('show');
-    
-    // 초기화
-    isGameOver = false;
-    isPlaying = true;
-    isSuperJumping = false;
-    lastLoadedFile = ""; // 리브 파일 강제 재로드 유도
-    document.getElementById('canvas-container').classList.remove('gold-glow');
-    
-    initPlatforms();
-}
-
 function showResult() {
     isPlaying = false; isGameOver = true;
     const finalDist = Math.floor(score * 0.01);
@@ -194,7 +175,7 @@ function showResult() {
     
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    document.getElementById('res-rate-num').innerText = totalRate.toFixed(2);
+    document.getElementById('res-total').innerText = `${totalRate.toFixed(2)}%`;
     
     const screen = document.getElementById('result-screen');
     screen.style.display = 'flex';
@@ -205,15 +186,7 @@ function loadRive(fileName) {
     if (lastLoadedFile === fileName) return;
     lastLoadedFile = fileName;
     if (riveInstance) riveInstance.cleanup();
-    riveInstance = new rive.Rive({ 
-        src: fileName, 
-        canvas: document.getElementById('canvas'), 
-        autoplay: true, 
-        stateMachines: 'State Machine 1', 
-        onLoad: () => {
-            riveInstance.resizeDrawingSurfaceToCanvas();
-        } 
-    });
+    riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
 }
 
 const setInput = (key, isDown, btn) => { if(isGameOver) return; keys[key] = isDown; if(btn) btn.classList.toggle('ctrl-pressed', isDown); };
@@ -266,23 +239,27 @@ function initPlatforms() {
     score = 0; cloverCount = 0; currentY = 0; velocityY = 0; posX = 0; woodParticles = []; bgScrollY = 0; maxReachY = 0;
     document.getElementById('score-board').innerText = "0m";
     document.getElementById('rate-board').innerText = "0";
-    document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
     let lastY = 752;
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
     platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
-    
-    // 춘식이 리로드
     loadRive('kongsik_ingame_air.riv');
+}
+
+function spawnPickupEffect(x, y) {
+    const eff = document.createElement('div');
+    eff.className = 'pickup-effect';
+    eff.style.left = (x - 80) + 'px'; eff.style.top = (y - 40) + 'px';
+    document.getElementById('game-stage').appendChild(eff);
+    setTimeout(() => { eff.style.transform = 'translateY(-80px)'; eff.style.opacity = '0'; }, 10);
+    setTimeout(() => eff.remove(), 800);
 }
 
 function update() {
     if (!isPlaying) { if(!isGameOver) requestAnimationFrame(update); return; }
-    
     if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
     if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
     posX = Math.max(-153, Math.min(153, posX));
-    
     velocityY += isSuperJumping ? PHYSICS.gravity * 0.5 : PHYSICS.gravity;
     currentY += velocityY;
     mouseAnimFrame = (mouseAnimFrame + 1) % 20;
@@ -320,7 +297,7 @@ function update() {
                 let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                 if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                     p.itemCollected = true;
-                    if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; } 
+                    if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
                     else if (p.item === 'gold') { isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
                 }
             }
