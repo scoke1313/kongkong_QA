@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>콩콩춘식 - 최종 디자인 튜닝</title>
+    <title>콩콩춘식 - 최종 디자인 튜닝 완료</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -34,9 +34,9 @@
         .result-card {
             position: absolute;
             top: 50%; left: 50%;
-            width: 345px; /* 좌우 마진 24px */
+            width: 348px; /* 버튼 합계 너비에 맞춤 (132 + 10 + 206) */
             background: #FFF; 
-            border-radius: 22px; /* 팝업창 라운드 22px */
+            border-radius: 22px; 
             padding: 32px 24px;
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             box-sizing: border-box;
@@ -44,7 +44,7 @@
             opacity: 0; transition: all 0.4s ease-out;
         }
         #result-screen.show .result-card { 
-            transform: translate(-50%, -50%); /* 세로 중앙 정렬 */
+            transform: translate(-50%, -50%); 
             opacity: 1; 
         }
         
@@ -64,23 +64,25 @@
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
+        /* 하단 버튼 영역 */
         .result-buttons { 
             position: absolute;
             bottom: 60px; /* 하단 여백 60px */
             left: 50%;
             transform: translateX(-50%);
             display: flex; gap: 10px; 
-            width: 345px; 
+            width: 348px; 
             box-sizing: border-box;
         }
         .btn-res { 
-            flex: 1; height: 64px; border: none; 
-            border-radius: 12px; /* 버튼 라운드 12px */
+            height: 64px; border: none; 
+            border-radius: 12px; 
             font-size: 18px; font-weight: 700; cursor: pointer; 
         }
         
-        #btn-go-main { background: #2D2D2D; color: #FFF; } /* 좌측 검정 */
-        #btn-retry { background: #F68679; color: #FFF; } /* 우측 핑크 */
+        /* 버튼 개별 너비 설정 */
+        #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
+        #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
 
         /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
@@ -199,7 +201,7 @@ function resetGame() {
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
     initPlatforms();
-    update(); // 멈춘 루프 재시작
+    update(); // 루프 재시작
 }
 
 function showResult() {
