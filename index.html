@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>콩콩춘식 - 쥐돌이 이펙트 최적화 버전</title>
+    <title>콩콩춘식 - 챌린지 결과 고도화</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -24,32 +24,45 @@
             background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001;
         }
 
-        /* --- [NEW] 결과 화면 (이미지 스타일 적용) --- */
+        /* --- 결과 화면 (요청 사항 반영) --- */
         #result-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 3000; display: none;
+            background: rgba(0,0,0,0.65); /* 딤드 65% */
+            z-index: 3000; display: none;
             flex-direction: column; justify-content: center; align-items: center;
         }
         .result-card {
-            width: 320px; background: #FFF; border-radius: 30px; padding: 32px 24px;
+            width: 345px; /* 좌우 마진 24px 적용 (393 - 48) */
+            background: #FFF; border-radius: 30px; padding: 32px 24px;
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-sizing: border-box;
             transform: translateY(30px); opacity: 0; transition: all 0.4s ease-out;
         }
         #result-screen.show .result-card { transform: translateY(0); opacity: 1; }
         
-        .res-title { font-size: 20px; font-weight: 800; color: #000; margin-bottom: 24px; }
+        .res-title { font-size: 20px; font-weight: 700; color: #000; margin-bottom: 24px; } /* 굵기 한단계 낮춤 */
         
         .res-info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; }
         .res-info-label { display: flex; align-items: center; font-size: 16px; font-weight: 700; color: #333; }
         .res-info-label img { width: 22px; height: 22px; margin-right: 8px; }
         .res-info-value { font-size: 18px; font-weight: 800; color: #333; }
 
-        .res-total-value { font-size: 52px; font-weight: 900; color: #333; margin: 20px 0 10px; font-family: 'Arial', sans-serif; }
+        .res-total-value { 
+            font-size: 58px; font-weight: 900; color: #333; 
+            margin: 20px 0 10px; 
+            font-family: 'Poetsen One', sans-serif; /* 폰트 변경 */
+            letter-spacing: -1px;
+        }
 
-        .result-buttons { display: flex; gap: 10px; width: 320px; margin-top: 20px; }
+        .result-buttons { 
+            display: flex; gap: 10px; 
+            width: 345px; /* 팝업창과 정렬 */
+            margin-top: 20px; 
+            box-sizing: border-box;
+        }
         .btn-res { flex: 1; height: 64px; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; }
-        #btn-retry { background: #2D2D2D; color: #FFF; }
-        #btn-go-main { background: #F68679; color: #FFF; }
+        #btn-go-main { background: #2D2D2D; color: #FFF; } /* 좌측 검정 */
+        #btn-retry { background: #F68679; color: #FFF; } /* 우측 핑크 */
 
         /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
@@ -104,8 +117,8 @@
         </div>
         
         <div class="result-buttons">
-            <button class="btn-res" id="btn-retry" onclick="location.reload();">재도전</button>
             <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인 화면 가기</button>
+            <button class="btn-res" id="btn-retry" onclick="location.reload();">재도전</button>
         </div>
     </div>
 
@@ -164,7 +177,6 @@ function showResult() {
     const finalDist = Math.floor(score * 0.01);
     const totalRate = (score * 0.0001) + (cloverCount * 0.1);
     
-    // 결과창 텍스트 업데이트
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
     document.getElementById('res-total').innerText = `${totalRate.toFixed(2)}%`;
