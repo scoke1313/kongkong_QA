@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -171,10 +172,11 @@ let currentY = 0, velocityY = 0, posX = 0, score = 0, cloverCount = 0, bgScrollY
 let maxReachY = 0;
 let riveInstance, keys = {}, currentScale = 1, platforms = [], woodParticles = [], motionTimer = 0, lastLoadedFile = "", mouseAnimFrame = 0;
 
-// ★★★ 60FPS 프레임 고정 변수 추가 ★★★
-let lastTime = 0;
+// ★★★ 60FPS 프레임 고정 변수 세팅 ★★★
+let lastTime = performance.now();
 const FPS = 60;
 const fpsInterval = 1000 / FPS;
+let accumulator = 0; // 프레임 지연 시간을 모아두는 변수 추가
 
 const mainRive = new rive.Rive({
     src: 'kongsik.riv',
@@ -192,7 +194,11 @@ function startGame() {
     document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
     isPlaying = true; isGameOver = false;
     initPlatforms();
-    lastTime = performance.now(); // 프레임 계산 시작 시간 초기화
+    
+    // 타임스탬프와 누적기 초기화
+    lastTime = performance.now(); 
+    accumulator = 0;
+    requestAnimationFrame(update);
 }
 
 function resetGame() {
@@ -206,8 +212,11 @@ function resetGame() {
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
     initPlatforms();
-    lastTime = performance.now(); // 프레임 계산 시작 시간 초기화
-    update(); 
+    
+    // 타임스탬프와 누적기 초기화
+    lastTime = performance.now(); 
+    accumulator = 0;
+    requestAnimationFrame(update); 
 }
 
 function showResult() {
@@ -294,19 +303,29 @@ function spawnPickupEffect(x, y) {
     setTimeout(() => eff.remove(), 800);
 }
 
-// ★★★ 60FPS 고정이 적용된 update 함수 ★★★
+// ★★★ 물리 로직과 화면 렌더링이 완벽하게 분리된 update 함수 ★★★
 function update(currentTime) {
     if (!isPlaying) { 
         if(!isGameOver) requestAnimationFrame(update); 
         return; 
     }
 
+    // 다음 프레임 먼저 예약
+    requestAnimationFrame(update);
+
     if (!currentTime) currentTime = performance.now();
     let deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
 
-    if (deltaTime > fpsInterval) {
-        lastTime = currentTime - (deltaTime % fpsInterval);
+    // 브라우저 탭을 이동했을 때 시간이 폭주하여 한 번에 수백 번 연산되는 것 방지
+    if (deltaTime > 100) deltaTime = 100;
 
+    // 흘러간 시간을 accumulator에 누적
+    accumulator += deltaTime;
+
+    // --- 1. 물리/로직 업데이트 구간 (정확히 60FPS 속도로만 동작) ---
+    while (accumulator >= fpsInterval) {
+        
         if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
         if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
         posX = Math.max(-153, Math.min(153, posX));
@@ -360,14 +379,23 @@ function update(currentTime) {
         }
         
         if (charFootY > 1050) showResult();
-        
+
+        // 연산이 끝날 때마다 16.6ms를 차감
+        accumulator -= fpsInterval;
+    }
+
+    // --- 2. 화면 렌더링 구간 (모니터 주사율에 맞춰 부드럽게 동작) ---
+    if (isPlaying && !isGameOver) {
         document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
         const stage = document.getElementById('game-stage');
         
+        // 기존 DOM 제거
         document.querySelectorAll('.platform, .mouse-enemy, .game-item, .wood-chunk, .damage-effect').forEach(el => el.remove());
         
+        // 목재 파티클 렌더링
         woodParticles.forEach(p => { const chunk = document.createElement('div'); chunk.className = 'wood-chunk'; chunk.style.cssText = `left:${p.x}px; top:${p.y}px; width:${p.size}px; height:${p.size}px; opacity:${p.life};`; stage.appendChild(chunk); });
         
+        // 발판 및 쥐 등 렌더링
         platforms.forEach(p => {
             if (!p.isBroken) {
                 const d = document.createElement('div'); d.className = 'platform'; d.style.cssText = `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:22px;background-image:url('${p.img}');`; stage.appendChild(d);
@@ -387,11 +415,7 @@ function update(currentTime) {
             }
         });
     }
-    
-    // 다음 프레임 예약
-    requestAnimationFrame(update);
 }
-update();
 </script>
 </body>
 </html>
