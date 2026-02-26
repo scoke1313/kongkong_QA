@@ -64,13 +64,13 @@
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
-        /* --- 확정 문구 스타일 수정 --- */
+        /* --- 확정 문구 스타일 (두께 700 반영) --- */
         .res-confirm-text {
-            font-size: 18px;    /* 16px -> 18px로 상향 */
+            font-size: 18px;    
             color: #666;
-            margin-top: 10px;   /* 기존 위치에서 하단으로 10px 이동 */
+            margin-top: 10px;   /* 하단으로 10px 이동 */
             margin-bottom: 10px;
-            font-weight: 500;
+            font-weight: 700;   /* 두께 700 설정 */
         }
 
         .result-buttons { 
@@ -163,7 +163,6 @@
 </div>
 
 <script>
-// (이하 게임 로직은 이전과 동일)
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
