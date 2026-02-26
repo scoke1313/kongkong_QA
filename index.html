@@ -64,10 +64,11 @@
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
-        /* 확정 문구 스타일 */
+        /* --- 확정 문구 스타일 수정 --- */
         .res-confirm-text {
-            font-size: 16px;
+            font-size: 18px;    /* 16px -> 18px로 상향 */
             color: #666;
+            margin-top: 10px;   /* 기존 위치에서 하단으로 10px 이동 */
             margin-bottom: 10px;
             font-weight: 500;
         }
@@ -87,9 +88,8 @@
             font-size: 18px; font-weight: 700; cursor: pointer; 
         }
         
-        /* 버튼 위치 및 색상 */
-        #btn-retry-result { width: 132px; background: #2D2D2D; color: #FFF; } /* 왼쪽 검정: 재도전 */
-        #btn-confirm-result { width: 206px; background: #F68679; color: #FFF; } /* 오른쪽 빨강: 확정(메인으로) */
+        #btn-retry-result { width: 132px; background: #2D2D2D; color: #FFF; }
+        #btn-confirm-result { width: 206px; background: #F68679; color: #FFF; }
 
         /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
@@ -163,7 +163,7 @@
 </div>
 
 <script>
-// 기존과 동일한 게임 로직 스크립트
+// (이하 게임 로직은 이전과 동일)
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
