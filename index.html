@@ -2,13 +2,13 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>콩콩춘식 - 최종 UI 최적화</title>
+    <title>콩콩춘식 - 반반 터치 컨트롤 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <style>
-        body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         #game-stage { 
             position: relative; width: 393px; height: 852px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
@@ -57,21 +57,12 @@
 
         .res-total-value { 
             display: flex; align-items: baseline; justify-content: center;
-            color: #333; margin: 20px 0 5px; 
+            color: #333; margin: 20px 0 10px; 
             font-family: 'Poetsen One', sans-serif;
             letter-spacing: -1px;
         }
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
-
-        /* --- 확정 문구 스타일 (두께 700 반영) --- */
-        .res-confirm-text {
-            font-size: 18px;    
-            color: #666;
-            margin-top: 10px;   /* 하단으로 10px 이동 */
-            margin-bottom: 10px;
-            font-weight: 700;   /* 두께 700 설정 */
-        }
 
         .result-buttons { 
             position: absolute;
@@ -88,33 +79,35 @@
             font-size: 18px; font-weight: 700; cursor: pointer; 
         }
         
-        #btn-retry-result { width: 132px; background: #2D2D2D; color: #FFF; }
-        #btn-confirm-result { width: 206px; background: #F68679; color: #FFF; }
+        #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
+        #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
 
         /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
         #btn-close-wrap { position: absolute; top: 16px; left: 4px; width: 44px; height: 44px; z-index: 1001; cursor: pointer; }
         #btn-close-wrap img { width: 100%; height: 100%; display: block; object-fit: contain; }
-        .header-ui-container { position: absolute; top: 75px; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
+        .header-ui-container { position: absolute; top: 75px; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; pointer-events: none; }
         #score-board { font-family: 'Poetsen One', sans-serif; font-size: 38px; color: #2D1D1C; line-height: 1; }
         .rate-capsule { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 2px solid #F0E0C6; border-radius: 30px; width: 110px; height: 46px; box-sizing: border-box; padding: 0 15px; }
         #rate-board { font-size: 20px; font-weight: 800; color: #2D1D1C; font-family: 'Arial', sans-serif; }
 
+        /* --- 터치 컨트롤 영역 --- */
+        #touch-zone {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 900; /* UI보단 아래, 게임화면보단 위 */
+            display: none; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         /* --- 게임 요소 --- */
-        #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; }
+        #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
         canvas { width: 100%; height: 100%; }
-        .platform { position: absolute; background-size: 100% 100%; z-index: 5; transition: opacity 0.2s; }
-        .mouse-enemy { position: absolute; width: 72px; height: 54px; background-size: contain; background-repeat: no-repeat; z-index: 6; }
+        .platform { position: absolute; background-size: 100% 100%; z-index: 5; transition: opacity 0.2s; pointer-events: none; }
+        .mouse-enemy { position: absolute; width: 72px; height: 54px; background-size: contain; background-repeat: no-repeat; z-index: 6; pointer-events: none; }
         .damage-effect { position: absolute; width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; z-index: 5.5; pointer-events: none; }
-        .game-item { position: absolute; width: 50px; height: 50px; background-size: contain; background-repeat: no-repeat; z-index: 7; }
+        .game-item { position: absolute; width: 50px; height: 50px; background-size: contain; background-repeat: no-repeat; z-index: 7; pointer-events: none; }
         .pickup-effect { position: absolute; width: 160px; height: 80px; background-image: url('effect_pickup.png'); background-size: contain; background-repeat: no-repeat; z-index: 120; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
         .wood-chunk { position: absolute; background-color: #A1887F; z-index: 4; pointer-events: none; border-radius: 1px; }
-
-        .controller { position: absolute; width: 92px; height: 92px; background-size: contain; z-index: 50; cursor: pointer; display: none; }
-        #btn-left { left: 30px; bottom: 40px; transform: scaleX(-1); }
-        #btn-right { right: 30px; bottom: 40px; }
-        .ctrl-default { background-image: url('controller_Default.png'); }
-        .ctrl-pressed { background-image: url('controller_pressed.png'); }
         .gold-glow { filter: drop-shadow(0 0 15px gold); }
     </style>
 </head>
@@ -140,12 +133,11 @@
             <div class="res-total-value">
                 <span id="res-rate-num">0.00</span><span id="res-rate-percent">%</span>
             </div>
-            <div class="res-confirm-text">이 금리로 확정하시겠습니까?</div>
         </div>
         
         <div class="result-buttons">
-            <button class="btn-res" id="btn-retry-result" onclick="resetGame();">재도전</button>
-            <button class="btn-res" id="btn-confirm-result" onclick="location.reload();">확정</button>
+            <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인</button>
+            <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
         </div>
     </div>
 
@@ -157,9 +149,9 @@
         </div>
     </div>
     
+    <div id="touch-zone"></div>
+    
     <div id="canvas-container"><canvas id="canvas"></canvas></div>
-    <div id="btn-left" class="controller ctrl-default"></div>
-    <div id="btn-right" class="controller ctrl-default"></div>
 </div>
 
 <script>
@@ -197,10 +189,12 @@ function startGame() {
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
-    document.querySelectorAll('.controller').forEach(el => el.style.display = 'block');
+    document.getElementById('touch-zone').style.display = 'block'; // 터치 영역 활성화
     document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
     isPlaying = true; isGameOver = false;
+    keys = {}; // 키 초기화
     initPlatforms();
+    
     lastTime = performance.now(); 
     accumulator = 0;
     requestAnimationFrame(update);
@@ -217,6 +211,7 @@ function resetGame() {
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
     initPlatforms();
+    
     lastTime = performance.now(); 
     accumulator = 0;
     requestAnimationFrame(update); 
@@ -224,6 +219,7 @@ function resetGame() {
 
 function showResult() {
     isPlaying = false; isGameOver = true;
+    keys = {}; // 결과창 뜨면 조작 멈춤
     const finalDist = Math.floor(score * 0.01);
     const totalRate = (score * 0.0001) + (cloverCount * 0.1);
     document.getElementById('res-distance').innerText = `${finalDist}m`;
@@ -241,21 +237,66 @@ function loadRive(fileName) {
     riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
 }
 
-const setInput = (key, isDown, btn) => { if(isGameOver) return; keys[key] = isDown; if(btn) btn.classList.toggle('ctrl-pressed', isDown); };
+// --- 키보드 이벤트 (PC 디버깅용 유지) ---
 window.addEventListener('keydown', (e) => { 
-    if (e.code === 'ArrowLeft') setInput('ArrowLeft', true, document.getElementById('btn-left')); 
-    if (e.code === 'ArrowRight') setInput('ArrowRight', true, document.getElementById('btn-right')); 
+    if(isGameOver) return;
+    if (e.code === 'ArrowLeft') keys['ArrowLeft'] = true; 
+    if (e.code === 'ArrowRight') keys['ArrowRight'] = true; 
 });
 window.addEventListener('keyup', (e) => { 
-    if (e.code === 'ArrowLeft') setInput('ArrowLeft', false, document.getElementById('btn-left')); 
-    if (e.code === 'ArrowRight') setInput('ArrowRight', false, document.getElementById('btn-right')); 
+    if (e.code === 'ArrowLeft') keys['ArrowLeft'] = false; 
+    if (e.code === 'ArrowRight') keys['ArrowRight'] = false; 
 });
-const attachControl = (btn, key) => {
-    btn.addEventListener('touchstart', (e) => { e.preventDefault(); setInput(key, true, btn); }, {passive: false});
-    btn.addEventListener('touchend', (e) => { e.preventDefault(); setInput(key, false, btn); }, {passive: false});
+
+// --- 반반 터치/마우스 컨트롤 로직 ---
+const touchZone = document.getElementById('touch-zone');
+
+const handlePointer = (e, isDown) => {
+    e.preventDefault();
+    if (isGameOver || !isPlaying) {
+        keys['ArrowLeft'] = false;
+        keys['ArrowRight'] = false;
+        return;
+    }
+    
+    if (!isDown) {
+        keys['ArrowLeft'] = false;
+        keys['ArrowRight'] = false;
+        return;
+    }
+    
+    let clientX;
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+    } else {
+        clientX = e.clientX;
+    }
+    
+    const rect = touchZone.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const mid = rect.width / 2;
+    
+    if (x < mid) {
+        keys['ArrowLeft'] = true;
+        keys['ArrowRight'] = false;
+    } else {
+        keys['ArrowRight'] = true;
+        keys['ArrowLeft'] = false;
+    }
 };
-attachControl(document.getElementById('btn-left'), 'ArrowLeft');
-attachControl(document.getElementById('btn-right'), 'ArrowRight');
+
+// 모바일 터치 이벤트
+touchZone.addEventListener('touchstart', (e) => handlePointer(e, true), {passive: false});
+touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false}); // 손가락을 떼지 않고 좌우로 넘나들 때
+touchZone.addEventListener('touchend', (e) => handlePointer(e, false), {passive: false});
+touchZone.addEventListener('touchcancel', (e) => handlePointer(e, false), {passive: false});
+
+// PC 마우스 테스트 지원
+let isMouseDown = false;
+touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handlePointer(e, true); });
+touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handlePointer(e, true); });
+touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handlePointer(e, false); });
+touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handlePointer(e, false); });
 
 class WoodParticle {
     constructor(x, y) {
@@ -313,13 +354,16 @@ function update(currentTime) {
     }
 
     requestAnimationFrame(update);
+
     if (!currentTime) currentTime = performance.now();
     let deltaTime = currentTime - lastTime;
     lastTime = currentTime;
+
     if (deltaTime > 100) deltaTime = 100;
     accumulator += deltaTime;
 
     while (accumulator >= fpsInterval) {
+        
         if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
         if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
         posX = Math.max(-153, Math.min(153, posX));
@@ -371,15 +415,20 @@ function update(currentTime) {
             platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
             woodParticles.forEach(p => p.y += diff);
         }
+        
         if (charFootY > 1050) showResult();
+
         accumulator -= fpsInterval;
     }
 
     if (isPlaying && !isGameOver) {
         document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
         const stage = document.getElementById('game-stage');
+        
         document.querySelectorAll('.platform, .mouse-enemy, .game-item, .wood-chunk, .damage-effect').forEach(el => el.remove());
+        
         woodParticles.forEach(p => { const chunk = document.createElement('div'); chunk.className = 'wood-chunk'; chunk.style.cssText = `left:${p.x}px; top:${p.y}px; width:${p.size}px; height:${p.size}px; opacity:${p.life};`; stage.appendChild(chunk); });
+        
         platforms.forEach(p => {
             if (!p.isBroken) {
                 const d = document.createElement('div'); d.className = 'platform'; d.style.cssText = `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:22px;background-image:url('${p.img}');`; stage.appendChild(d);
