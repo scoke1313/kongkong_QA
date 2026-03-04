@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>콩콩춘식 - 852px 안정화 & 메인 40px 패치</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#333333">
+    
+    <link rel="apple-touch-icon" href="app_icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
+    
+    <title>콩콩춘식 - 메인 모션 하단 10px 이동 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -11,7 +21,6 @@
     <style>
         body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         
-        /* ★ 화면 높이 852px 원복 (가장 안정적인 사이즈) ★ */
         #game-stage { 
             position: relative; width: 393px; height: 852px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
@@ -20,10 +29,10 @@
         /* --- 메인 화면 --- */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
         
-        /* ★ Rive 모션 컨테이너 상단으로 40px 이동 ★ */
+        /* ★ Rive 모션 컨테이너 하단으로 10px 이동 (top: -40px -> -30px) ★ */
         #main-rive-container { 
             position: absolute; 
-            top: -40px; 
+            top: -30px; 
             left: 0; 
             width: 100%; 
             height: 852px; 
@@ -188,7 +197,21 @@ const mainRive = new rive.Rive({
     onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
 });
 
+function requestFullScreen() {
+    const docElm = document.documentElement;
+    if (docElm.requestFullscreen) {
+        docElm.requestFullscreen().catch(err => console.log("전체 화면 전환 실패:", err));
+    } else if (docElm.mozRequestFullScreen) {
+        docElm.mozRequestFullScreen();
+    } else if (docElm.webkitRequestFullScreen) {
+        docElm.webkitRequestFullScreen();
+    } else if (docElm.msRequestFullscreen) {
+        docElm.msRequestFullscreen();
+    }
+}
+
 function startGame() {
+    requestFullScreen();
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
@@ -344,7 +367,7 @@ function initPlatforms() {
     document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
     
-    let lastY = 752;
+    let lastY = 752; 
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
     platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
     loadRive('kongsik_ingame_air.riv');
@@ -388,7 +411,7 @@ function update(currentTime) {
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
         
-        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25;
+        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; 
         
         platforms.forEach(p => {
             if (p.hasMouse) {
@@ -416,7 +439,7 @@ function update(currentTime) {
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
                     
-                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold;
+                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
             }
