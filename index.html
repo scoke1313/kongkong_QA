@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>콩콩춘식 - 화면 높이 최적화 & 메인 UI 완벽 패치</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#333333">
+    
+    <title>콩콩춘식 - 전체 화면 지원 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -19,10 +25,9 @@
         /* --- 메인 화면 --- */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
         
-        /* ★ Rive 모션 중앙 정렬 보정 (top: -120px) ★ */
         #main-rive-container { 
             position: absolute; 
-            top: -120px; /* 기존 -60px에서 60px 더 위로 이동 */
+            top: -120px; 
             left: 0; 
             width: 100%; 
             height: 852px; 
@@ -187,7 +192,24 @@ const mainRive = new rive.Rive({
     onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
 });
 
+// ★ 전체 화면 요청 함수 추가 ★
+function requestFullScreen() {
+    const docElm = document.documentElement;
+    if (docElm.requestFullscreen) {
+        docElm.requestFullscreen().catch(err => console.log("전체 화면 전환 실패:", err));
+    } else if (docElm.mozRequestFullScreen) { /* Firefox */
+        docElm.mozRequestFullScreen();
+    } else if (docElm.webkitRequestFullScreen) { /* Chrome, Safari and Opera */
+        docElm.webkitRequestFullScreen();
+    } else if (docElm.msRequestFullscreen) { /* IE/Edge */
+        docElm.msRequestFullscreen();
+    }
+}
+
 function startGame() {
+    // ★ 게임 시작 버튼을 누를 때 전체 화면 시도 ★
+    requestFullScreen();
+
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
