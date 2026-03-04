@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>콩콩춘식 - 화면 높이 최적화 패치</title>
+    <title>콩콩춘식 - 화면 높이 최적화 & 메인 UI 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -11,7 +11,6 @@
     <style>
         body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         
-        /* ★ 화면 높이 852px -> 732px 로 120px 축소 ★ */
         #game-stage { 
             position: relative; width: 393px; height: 732px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
@@ -19,8 +18,18 @@
 
         /* --- 메인 화면 --- */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
-        #main-rive-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        /* ★ Rive 모션 사이즈 복구 및 30px 위로 이동 ★ */
+        #main-rive-container { 
+            position: absolute; 
+            top: -30px; /* 30px 위로 올림 */
+            left: 0; 
+            width: 100%; /* 가로 393px (100%) 유지 */
+            height: 852px; /* 세로 높이를 원래대로 주어 Rive가 작아지는 현상 방지 */
+            pointer-events: none; 
+        }
         #main-canvas { width: 100%; height: 100%; }
+        
         #start-button {
             position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
             width: 340px; height: 75px; background-image: url('btn_start.png'); background-size: contain; 
@@ -91,7 +100,7 @@
         }
 
         .controller { 
-            position: absolute; width: 80px; height: 80px; 
+            position: absolute; width: 90px; height: 90px; 
             background-size: contain; z-index: 950; display: none; 
             pointer-events: none; 
         }
@@ -334,7 +343,6 @@ function initPlatforms() {
     document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
     
-    // ★ 시작 발판 높이 120px 축소 반영 (752 -> 632)
     let lastY = 632;
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
     platforms.push({ x: 393/2-69, y: 632, baseY: 632, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
@@ -379,7 +387,6 @@ function update(currentTime) {
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
         
-        // ★ 캐릭터 발 좌표 높이 120px 축소 반영 (752 -> 632)
         const charFootY = 632 + currentY, charLeft = 393/2 + posX - 25;
         
         platforms.forEach(p => {
@@ -408,7 +415,6 @@ function update(currentTime) {
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
                     
-                    // ★ 착지 시 좌표 보정 (752 -> 632)
                     loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 632; motionTimer = PHYSICS.motionHold;
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
@@ -419,13 +425,11 @@ function update(currentTime) {
         if (currentY < -250) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
             
-            // ★ 화면 배경 및 발판 소멸 기준 보정 (852 -> 732)
             document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 732) + 'px';
             platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 732 && p.baseY > 732) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
             woodParticles.forEach(p => p.y += diff);
         }
         
-        // ★ 화면 밖으로 떨어져 죽는 게임오버 기준 보정 (1050 -> 930)
         if (charFootY > 930) showResult();
 
         accumulator -= fpsInterval;
