@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>콩콩춘식 - 반반 터치 컨트롤 패치</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>콩콩춘식 - 반반 터치 + UI 버튼 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -32,24 +33,15 @@
         }
         
         .result-card {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 348px; 
-            background: #FFF; 
-            border-radius: 22px; 
-            padding: 32px 24px;
+            position: absolute; top: 50%; left: 50%; width: 348px; 
+            background: #FFF; border-radius: 22px; padding: 32px 24px;
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            transform: translate(-50%, calc(-50% + 30px));
+            box-sizing: border-box; transform: translate(-50%, calc(-50% + 30px));
             opacity: 0; transition: all 0.4s ease-out;
         }
-        #result-screen.show .result-card { 
-            transform: translate(-50%, -50%); 
-            opacity: 1; 
-        }
+        #result-screen.show .result-card { transform: translate(-50%, -50%); opacity: 1; }
         
         .res-title { font-size: 20px; font-weight: 600; color: #000; margin-bottom: 24px; } 
-        
         .res-info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; }
         .res-info-label { display: flex; align-items: center; font-size: 16px; font-weight: 700; color: #333; }
         .res-info-label img { width: 22px; height: 22px; margin-right: 8px; }
@@ -57,28 +49,16 @@
 
         .res-total-value { 
             display: flex; align-items: baseline; justify-content: center;
-            color: #333; margin: 20px 0 10px; 
-            font-family: 'Poetsen One', sans-serif;
-            letter-spacing: -1px;
+            color: #333; margin: 20px 0 10px; font-family: 'Poetsen One', sans-serif; letter-spacing: -1px;
         }
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
         .result-buttons { 
-            position: absolute;
-            bottom: 60px; 
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex; gap: 10px; 
-            width: 348px; 
-            box-sizing: border-box;
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; width: 348px; box-sizing: border-box;
         }
-        .btn-res { 
-            height: 64px; border: none; 
-            border-radius: 12px; 
-            font-size: 18px; font-weight: 700; cursor: pointer; 
-        }
-        
+        .btn-res { height: 64px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; }
         #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
         #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
 
@@ -91,15 +71,7 @@
         .rate-capsule { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 2px solid #F0E0C6; border-radius: 30px; width: 110px; height: 46px; box-sizing: border-box; padding: 0 15px; }
         #rate-board { font-size: 20px; font-weight: 800; color: #2D1D1C; font-family: 'Arial', sans-serif; }
 
-        /* --- 터치 컨트롤 영역 --- */
-        #touch-zone {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 900; /* UI보단 아래, 게임화면보단 위 */
-            display: none; cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* --- 게임 요소 --- */
+        /* --- 게임 요소 & 컨트롤러 --- */
         #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
         canvas { width: 100%; height: 100%; }
         .platform { position: absolute; background-size: 100% 100%; z-index: 5; transition: opacity 0.2s; pointer-events: none; }
@@ -109,6 +81,24 @@
         .pickup-effect { position: absolute; width: 160px; height: 80px; background-image: url('effect_pickup.png'); background-size: contain; background-repeat: no-repeat; z-index: 120; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
         .wood-chunk { position: absolute; background-color: #A1887F; z-index: 4; pointer-events: none; border-radius: 1px; }
         .gold-glow { filter: drop-shadow(0 0 15px gold); }
+
+        /* ★ 터치 영역 설정 (UI 버튼들 아래에 깔림) ★ */
+        #touch-zone {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 900; display: none; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ★ 시각적 버튼 복구 (90x90 사이즈 유지, 이벤트는 touch-zone이 처리하도록 pointer-events: none 처리) ★ */
+        .controller { 
+            position: absolute; width: 90px; height: 90px; 
+            background-size: contain; z-index: 950; display: none; 
+            pointer-events: none; /* 터치가 그대로 통과되어 touch-zone이 인식하도록 함 */
+        }
+        #btn-left { left: 30px; bottom: 40px; transform: scaleX(-1); }
+        #btn-right { right: 30px; bottom: 40px; }
+        .ctrl-default { background-image: url('controller_Default.png'); }
+        .ctrl-pressed { background-image: url('controller_pressed.png'); }
     </style>
 </head>
 <body>
@@ -150,6 +140,8 @@
     </div>
     
     <div id="touch-zone"></div>
+    <div id="btn-left" class="controller ctrl-default"></div>
+    <div id="btn-right" class="controller ctrl-default"></div>
     
     <div id="canvas-container"><canvas id="canvas"></canvas></div>
 </div>
@@ -159,7 +151,8 @@ const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
     'item_clover.png', 'item_gold.png', 'wood_1.png', 'wood_2.png', 'wood_3.png',
-    'block_1.png', 'block_2.png', 'block_3.png', 'pogo_s.png'
+    'block_1.png', 'block_2.png', 'block_3.png', 'pogo_s.png',
+    'controller_Default.png', 'controller_pressed.png'
 ];
 preloadImages.forEach(src => { const img = new Image(); img.src = src; });
 
@@ -189,10 +182,14 @@ function startGame() {
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
-    document.getElementById('touch-zone').style.display = 'block'; // 터치 영역 활성화
+    
+    // 터치 영역 및 시각적 컨트롤러 표시
+    document.getElementById('touch-zone').style.display = 'block'; 
+    document.querySelectorAll('.controller').forEach(el => el.style.display = 'block');
+    
     document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
     isPlaying = true; isGameOver = false;
-    keys = {}; // 키 초기화
+    keys = {}; 
     initPlatforms();
     
     lastTime = performance.now(); 
@@ -210,6 +207,8 @@ function resetGame() {
     isSuperJumping = false;
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
+    document.getElementById('btn-left').classList.remove('ctrl-pressed');
+    document.getElementById('btn-right').classList.remove('ctrl-pressed');
     initPlatforms();
     
     lastTime = performance.now(); 
@@ -219,7 +218,10 @@ function resetGame() {
 
 function showResult() {
     isPlaying = false; isGameOver = true;
-    keys = {}; // 결과창 뜨면 조작 멈춤
+    keys = {}; 
+    document.getElementById('btn-left').classList.remove('ctrl-pressed');
+    document.getElementById('btn-right').classList.remove('ctrl-pressed');
+    
     const finalDist = Math.floor(score * 0.01);
     const totalRate = (score * 0.0001) + (cloverCount * 0.1);
     document.getElementById('res-distance').innerText = `${finalDist}m`;
@@ -237,31 +239,33 @@ function loadRive(fileName) {
     riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
 }
 
-// --- 키보드 이벤트 (PC 디버깅용 유지) ---
+// --- 키보드 이벤트 (PC 디버깅 & 시각 효과 동기화) ---
 window.addEventListener('keydown', (e) => { 
     if(isGameOver) return;
-    if (e.code === 'ArrowLeft') keys['ArrowLeft'] = true; 
-    if (e.code === 'ArrowRight') keys['ArrowRight'] = true; 
+    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = true; document.getElementById('btn-left').classList.add('ctrl-pressed'); }
+    if (e.code === 'ArrowRight') { keys['ArrowRight'] = true; document.getElementById('btn-right').classList.add('ctrl-pressed'); }
 });
 window.addEventListener('keyup', (e) => { 
-    if (e.code === 'ArrowLeft') keys['ArrowLeft'] = false; 
-    if (e.code === 'ArrowRight') keys['ArrowRight'] = false; 
+    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = false; document.getElementById('btn-left').classList.remove('ctrl-pressed'); }
+    if (e.code === 'ArrowRight') { keys['ArrowRight'] = false; document.getElementById('btn-right').classList.remove('ctrl-pressed'); }
 });
 
-// --- 반반 터치/마우스 컨트롤 로직 ---
+// --- 반반 터치 및 시각 효과 로직 ---
 const touchZone = document.getElementById('touch-zone');
 
 const handlePointer = (e, isDown) => {
     e.preventDefault();
     if (isGameOver || !isPlaying) {
-        keys['ArrowLeft'] = false;
-        keys['ArrowRight'] = false;
+        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
+        document.getElementById('btn-left').classList.remove('ctrl-pressed');
+        document.getElementById('btn-right').classList.remove('ctrl-pressed');
         return;
     }
     
     if (!isDown) {
-        keys['ArrowLeft'] = false;
-        keys['ArrowRight'] = false;
+        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
+        document.getElementById('btn-left').classList.remove('ctrl-pressed');
+        document.getElementById('btn-right').classList.remove('ctrl-pressed');
         return;
     }
     
@@ -277,21 +281,23 @@ const handlePointer = (e, isDown) => {
     const mid = rect.width / 2;
     
     if (x < mid) {
-        keys['ArrowLeft'] = true;
-        keys['ArrowRight'] = false;
+        keys['ArrowLeft'] = true; keys['ArrowRight'] = false;
+        document.getElementById('btn-left').classList.add('ctrl-pressed');
+        document.getElementById('btn-right').classList.remove('ctrl-pressed');
     } else {
-        keys['ArrowRight'] = true;
-        keys['ArrowLeft'] = false;
+        keys['ArrowRight'] = true; keys['ArrowLeft'] = false;
+        document.getElementById('btn-right').classList.add('ctrl-pressed');
+        document.getElementById('btn-left').classList.remove('ctrl-pressed');
     }
 };
 
-// 모바일 터치 이벤트
+// 터치 이벤트
 touchZone.addEventListener('touchstart', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false}); // 손가락을 떼지 않고 좌우로 넘나들 때
+touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false});
 touchZone.addEventListener('touchend', (e) => handlePointer(e, false), {passive: false});
 touchZone.addEventListener('touchcancel', (e) => handlePointer(e, false), {passive: false});
 
-// PC 마우스 테스트 지원
+// 마우스 테스트 지원
 let isMouseDown = false;
 touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handlePointer(e, true); });
 touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handlePointer(e, true); });
