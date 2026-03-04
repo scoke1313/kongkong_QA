@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>콩콩춘식 - 반반 터치 + UI 버튼 패치</title>
+    <title>콩콩춘식 - 화면 높이 최적화 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <style>
         body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
+        
+        /* ★ 화면 높이 852px -> 732px 로 120px 축소 ★ */
         #game-stage { 
-            position: relative; width: 393px; height: 852px; 
+            position: relative; width: 393px; height: 732px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
         }
 
@@ -82,18 +84,16 @@
         .wood-chunk { position: absolute; background-color: #A1887F; z-index: 4; pointer-events: none; border-radius: 1px; }
         .gold-glow { filter: drop-shadow(0 0 15px gold); }
 
-        /* ★ 터치 영역 설정 (UI 버튼들 아래에 깔림) ★ */
         #touch-zone {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 900; display: none; cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ★ 시각적 버튼 복구 (90x90 사이즈 유지, 이벤트는 touch-zone이 처리하도록 pointer-events: none 처리) ★ */
         .controller { 
             position: absolute; width: 90px; height: 90px; 
             background-size: contain; z-index: 950; display: none; 
-            pointer-events: none; /* 터치가 그대로 통과되어 touch-zone이 인식하도록 함 */
+            pointer-events: none; 
         }
         #btn-left { left: 30px; bottom: 40px; transform: scaleX(-1); }
         #btn-right { right: 30px; bottom: 40px; }
@@ -183,7 +183,6 @@ function startGame() {
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
     
-    // 터치 영역 및 시각적 컨트롤러 표시
     document.getElementById('touch-zone').style.display = 'block'; 
     document.querySelectorAll('.controller').forEach(el => el.style.display = 'block');
     
@@ -239,7 +238,6 @@ function loadRive(fileName) {
     riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
 }
 
-// --- 키보드 이벤트 (PC 디버깅 & 시각 효과 동기화) ---
 window.addEventListener('keydown', (e) => { 
     if(isGameOver) return;
     if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = true; document.getElementById('btn-left').classList.add('ctrl-pressed'); }
@@ -250,7 +248,6 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'ArrowRight') { keys['ArrowRight'] = false; document.getElementById('btn-right').classList.remove('ctrl-pressed'); }
 });
 
-// --- 반반 터치 및 시각 효과 로직 ---
 const touchZone = document.getElementById('touch-zone');
 
 const handlePointer = (e, isDown) => {
@@ -291,13 +288,11 @@ const handlePointer = (e, isDown) => {
     }
 };
 
-// 터치 이벤트
 touchZone.addEventListener('touchstart', (e) => handlePointer(e, true), {passive: false});
 touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false});
 touchZone.addEventListener('touchend', (e) => handlePointer(e, false), {passive: false});
 touchZone.addEventListener('touchcancel', (e) => handlePointer(e, false), {passive: false});
 
-// 마우스 테스트 지원
 let isMouseDown = false;
 touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handlePointer(e, true); });
 touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handlePointer(e, true); });
@@ -338,9 +333,11 @@ function initPlatforms() {
     document.getElementById('rate-board').innerText = "0";
     document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
-    let lastY = 752;
+    
+    // ★ 시작 발판 높이 120px 축소 반영 (752 -> 632)
+    let lastY = 632;
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
-    platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
+    platforms.push({ x: 393/2-69, y: 632, baseY: 632, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
     loadRive('kongsik_ingame_air.riv');
 }
 
@@ -381,7 +378,9 @@ function update(currentTime) {
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
-        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25;
+        
+        // ★ 캐릭터 발 좌표 높이 120px 축소 반영 (752 -> 632)
+        const charFootY = 632 + currentY, charLeft = 393/2 + posX - 25;
         
         platforms.forEach(p => {
             if (p.hasMouse) {
@@ -408,7 +407,9 @@ function update(currentTime) {
                     }
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
-                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold;
+                    
+                    // ★ 착지 시 좌표 보정 (752 -> 632)
+                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 632; motionTimer = PHYSICS.motionHold;
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
             }
@@ -417,12 +418,15 @@ function update(currentTime) {
         if (motionTimer > 0) { motionTimer--; if (motionTimer === 1) loadRive('kongsik_ingame_air.riv'); }
         if (currentY < -250) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
-            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px';
-            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
+            
+            // ★ 화면 배경 및 발판 소멸 기준 보정 (852 -> 732)
+            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 732) + 'px';
+            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 732 && p.baseY > 732) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
             woodParticles.forEach(p => p.y += diff);
         }
         
-        if (charFootY > 1050) showResult();
+        // ★ 화면 밖으로 떨어져 죽는 게임오버 기준 보정 (1050 -> 930)
+        if (charFootY > 930) showResult();
 
         accumulator -= fpsInterval;
     }
