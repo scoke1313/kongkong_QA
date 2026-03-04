@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#333333">
     
-    <title>콩콩춘식 - 전체 화면 지원 패치</title>
+    <title>콩콩춘식 - 852px 원복 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -17,8 +17,9 @@
     <style>
         body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         
+        /* ★ 화면 높이 852px 원복 ★ */
         #game-stage { 
-            position: relative; width: 393px; height: 732px; 
+            position: relative; width: 393px; height: 852px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
         }
 
@@ -27,7 +28,7 @@
         
         #main-rive-container { 
             position: absolute; 
-            top: -120px; 
+            top: 0; /* 중앙 위치 정상화 */
             left: 0; 
             width: 100%; 
             height: 852px; 
@@ -192,7 +193,6 @@ const mainRive = new rive.Rive({
     onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
 });
 
-// ★ 전체 화면 요청 함수 추가 ★
 function requestFullScreen() {
     const docElm = document.documentElement;
     if (docElm.requestFullscreen) {
@@ -207,9 +207,7 @@ function requestFullScreen() {
 }
 
 function startGame() {
-    // ★ 게임 시작 버튼을 누를 때 전체 화면 시도 ★
     requestFullScreen();
-
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
@@ -365,9 +363,9 @@ function initPlatforms() {
     document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
     
-    let lastY = 632;
+    let lastY = 752; // ★ 원복: 632 -> 752
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
-    platforms.push({ x: 393/2-69, y: 632, baseY: 632, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
+    platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
     loadRive('kongsik_ingame_air.riv');
 }
 
@@ -409,7 +407,7 @@ function update(currentTime) {
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
         
-        const charFootY = 632 + currentY, charLeft = 393/2 + posX - 25;
+        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; // ★ 원복: 632 -> 752
         
         platforms.forEach(p => {
             if (p.hasMouse) {
@@ -437,7 +435,7 @@ function update(currentTime) {
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
                     
-                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 632; motionTimer = PHYSICS.motionHold;
+                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; // ★ 원복: 632 -> 752
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
             }
@@ -447,12 +445,12 @@ function update(currentTime) {
         if (currentY < -250) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
             
-            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 732) + 'px';
-            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 732 && p.baseY > 732) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
+            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; // ★ 원복: 732 -> 852
+            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
             woodParticles.forEach(p => p.y += diff);
         }
         
-        if (charFootY > 930) showResult();
+        if (charFootY > 1050) showResult(); // ★ 원복: 930 -> 1050
 
         accumulator -= fpsInterval;
     }
