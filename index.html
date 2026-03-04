@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>콩콩춘식 - 화면 높이 최적화 & 메인 UI 패치</title>
+    <title>콩콩춘식 - 화면 높이 최적화 & 메인 UI 완벽 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -19,13 +19,13 @@
         /* --- 메인 화면 --- */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
         
-        /* ★ Rive 모션 사이즈 복구 및 30px 위로 이동 ★ */
+        /* ★ Rive 모션 중앙 정렬 보정 (top: -60px) ★ */
         #main-rive-container { 
             position: absolute; 
-            top: -30px; /* 30px 위로 올림 */
+            top: -60px; /* 중앙 쏠림 현상을 보정하기 위해 위로 60px 이동 */
             left: 0; 
-            width: 100%; /* 가로 393px (100%) 유지 */
-            height: 852px; /* 세로 높이를 원래대로 주어 Rive가 작아지는 현상 방지 */
+            width: 100%; 
+            height: 852px; 
             pointer-events: none; 
         }
         #main-canvas { width: 100%; height: 100%; }
