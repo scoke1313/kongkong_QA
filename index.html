@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 메인 모션 하단 10px 이동 패치</title>
+    <title>콩콩춘식 - 강제 전체화면 제거 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
@@ -29,7 +29,6 @@
         /* --- 메인 화면 --- */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
         
-        /* ★ Rive 모션 컨테이너 하단으로 10px 이동 (top: -40px -> -30px) ★ */
         #main-rive-container { 
             position: absolute; 
             top: -30px; 
@@ -197,21 +196,8 @@ const mainRive = new rive.Rive({
     onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
 });
 
-function requestFullScreen() {
-    const docElm = document.documentElement;
-    if (docElm.requestFullscreen) {
-        docElm.requestFullscreen().catch(err => console.log("전체 화면 전환 실패:", err));
-    } else if (docElm.mozRequestFullScreen) {
-        docElm.mozRequestFullScreen();
-    } else if (docElm.webkitRequestFullScreen) {
-        docElm.webkitRequestFullScreen();
-    } else if (docElm.msRequestFullscreen) {
-        docElm.msRequestFullscreen();
-    }
-}
-
 function startGame() {
-    requestFullScreen();
+    // 강제 전체화면 코드 삭제 완료
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
