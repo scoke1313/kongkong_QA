@@ -2,42 +2,40 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#333333">
     
-    <title>콩콩춘식 - 852px 원복 패치</title>
+    <title>콩콩춘식 - 아이폰 노치 풀스크린 패치</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <style>
-        body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
+        /* body가 화면 전체를 덮도록 min-height: 100dvh 사용 */
+        body { margin: 0; background: #333; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; min-height: 100dvh; overflow: hidden; touch-action: none; }
         
-        /* ★ 화면 높이 852px 원복 ★ */
+        /* ★ 화면을 100% 꽉 채우되, 너무 넓은 태블릿/PC 방지를 위해 max-width 430px 지정 ★ */
         #game-stage { 
-            position: relative; width: 393px; height: 852px; 
+            position: relative; width: 100%; max-width: 430px; height: 100vh; height: 100dvh; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
+            box-sizing: border-box;
         }
 
         /* --- 메인 화면 --- */
-        #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
+        #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: cover; background-position: center; z-index: 2000; }
         
         #main-rive-container { 
-            position: absolute; 
-            top: 0; /* 중앙 위치 정상화 */
-            left: 0; 
-            width: 100%; 
-            height: 852px; 
-            pointer-events: none; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; 
         }
         #main-canvas { width: 100%; height: 100%; }
         
+        /* 하단 여백: 노치/홈바 보호 (safe-area-inset-bottom) */
         #start-button {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: calc(50px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
             width: 340px; height: 75px; background-image: url('btn_start.png'); background-size: contain; 
             background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001;
         }
@@ -72,7 +70,7 @@
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
 
         .result-buttons { 
-            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: calc(60px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
             display: flex; gap: 10px; width: 348px; box-sizing: border-box;
         }
         .btn-res { height: 64px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; }
@@ -81,15 +79,16 @@
 
         /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
-        #btn-close-wrap { position: absolute; top: 16px; left: 4px; width: 44px; height: 44px; z-index: 1001; cursor: pointer; }
+        /* 상단 노치 보호 (safe-area-inset-top) */
+        #btn-close-wrap { position: absolute; top: calc(16px + env(safe-area-inset-top)); left: 4px; width: 44px; height: 44px; z-index: 1001; cursor: pointer; }
         #btn-close-wrap img { width: 100%; height: 100%; display: block; object-fit: contain; }
-        .header-ui-container { position: absolute; top: 75px; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; pointer-events: none; }
+        .header-ui-container { position: absolute; top: calc(75px + env(safe-area-inset-top)); left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; pointer-events: none; }
         #score-board { font-family: 'Poetsen One', sans-serif; font-size: 38px; color: #2D1D1C; line-height: 1; }
         .rate-capsule { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 2px solid #F0E0C6; border-radius: 30px; width: 110px; height: 46px; box-sizing: border-box; padding: 0 15px; }
         #rate-board { font-size: 20px; font-weight: 800; color: #2D1D1C; font-family: 'Arial', sans-serif; }
 
         /* --- 게임 요소 & 컨트롤러 --- */
-        #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
+        #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: calc(100px + env(safe-area-inset-bottom)); left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
         canvas { width: 100%; height: 100%; }
         .platform { position: absolute; background-size: 100% 100%; z-index: 5; transition: opacity 0.2s; pointer-events: none; }
         .mouse-enemy { position: absolute; width: 72px; height: 54px; background-size: contain; background-repeat: no-repeat; z-index: 6; pointer-events: none; }
@@ -110,8 +109,8 @@
             background-size: contain; z-index: 950; display: none; 
             pointer-events: none; 
         }
-        #btn-left { left: 30px; bottom: 40px; transform: scaleX(-1); }
-        #btn-right { right: 30px; bottom: 40px; }
+        #btn-left { left: 30px; bottom: calc(40px + env(safe-area-inset-bottom)); transform: scaleX(-1); }
+        #btn-right { right: 30px; bottom: calc(40px + env(safe-area-inset-bottom)); }
         .ctrl-default { background-image: url('controller_Default.png'); }
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
     </style>
@@ -197,11 +196,11 @@ function requestFullScreen() {
     const docElm = document.documentElement;
     if (docElm.requestFullscreen) {
         docElm.requestFullscreen().catch(err => console.log("전체 화면 전환 실패:", err));
-    } else if (docElm.mozRequestFullScreen) { /* Firefox */
+    } else if (docElm.mozRequestFullScreen) {
         docElm.mozRequestFullScreen();
-    } else if (docElm.webkitRequestFullScreen) { /* Chrome, Safari and Opera */
+    } else if (docElm.webkitRequestFullScreen) {
         docElm.webkitRequestFullScreen();
-    } else if (docElm.msRequestFullscreen) { /* IE/Edge */
+    } else if (docElm.msRequestFullscreen) {
         docElm.msRequestFullscreen();
     }
 }
@@ -363,7 +362,7 @@ function initPlatforms() {
     document.getElementById('game-stage').style.backgroundPositionY = '0px';
     platforms = [];
     
-    let lastY = 752; // ★ 원복: 632 -> 752
+    let lastY = 752; 
     for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
     platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
     loadRive('kongsik_ingame_air.riv');
@@ -407,7 +406,7 @@ function update(currentTime) {
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
         
-        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; // ★ 원복: 632 -> 752
+        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; 
         
         platforms.forEach(p => {
             if (p.hasMouse) {
@@ -435,7 +434,7 @@ function update(currentTime) {
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
                     
-                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; // ★ 원복: 632 -> 752
+                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
             }
@@ -445,12 +444,21 @@ function update(currentTime) {
         if (currentY < -250) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
             
-            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; // ★ 원복: 732 -> 852
-            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
+            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; 
+            
+            // ★ 화면이 세로로 길어졌을 때를 대비해 플랫폼 소멸 마지노선을 1200으로 여유있게 수정 ★
+            platforms.forEach(p => { 
+                p.y += diff; p.baseY += diff; 
+                if (p.y > 1200 && p.baseY > 1200) { 
+                    let topY = Math.min(...platforms.map(pl => pl.y)); 
+                    Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); 
+                    p.isBroken = false; 
+                } 
+            });
             woodParticles.forEach(p => p.y += diff);
         }
         
-        if (charFootY > 1050) showResult(); // ★ 원복: 930 -> 1050
+        if (charFootY > 1050) showResult(); 
 
         accumulator -= fpsInterval;
     }
