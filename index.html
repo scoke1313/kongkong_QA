@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>둥둥그라운드 v1.9.11 - 콩콩춘식 패치 완료</title>
+    <title>둥둥그라운드 v1.9.11 - 앱 아이콘 및 카톡 공유 패치</title>
 
     <meta property="og:title" content="둥둥그라운드: 콩콩춘식과 함께!">
     <meta property="og:description" content="지금 바로 춘식이와 함께 보급 작전을 시작해보세요!">
@@ -31,8 +31,8 @@
         #game-container { position: relative; width: 393px; height: 852px; overflow: hidden; background: #BBE5FF; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
         #main-screen { position: absolute; inset: 0; background: url('bg_main.png') no-repeat center center / cover; z-index: 100; }
         
-        /* ★ Rive 캔버스 컨테이너 매칭 수정 (inset: 0, width/height: 100%) ★ */
-        #rive-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 105; opacity: 0; transition: opacity 0.5s ease-in-out; }
+        /* ★ Rive 캔버스 컨테이너 롤백 (원래대로 393px, 852px 고정) ★ */
+        #rive-canvas { position: absolute; top: 0; left: 0; width: 393px; height: 852px; pointer-events: none; z-index: 105; opacity: 0; transition: opacity 0.5s ease-in-out; }
         
         canvas { display: block; width: 100%; height: 100%; outline: none; -webkit-tap-highlight-color: transparent; }
         
