@@ -2,481 +2,542 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    
     <meta name="viewport" content="width=393, height=852, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <meta name="theme-color" content="#333333">
     
     <link rel="apple-touch-icon" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 다크 여백 완벽 패치</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
+    <title>둥둥그라운드 v1.9.11 - 콩콩춘식 패치 완료</title>
+
+    <meta property="og:title" content="둥둥그라운드: 콩콩춘식과 함께!">
+    <meta property="og:description" content="지금 바로 춘식이와 함께 보급 작전을 시작해보세요!">
+    <meta property="og:image" content="https://scoke1313.github.io/og_image.png"> 
+    <meta property="og:url" content="https://scoke1313.github.io">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
     <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <style>
-        /* ★ html, body 모두 배경을 #333으로 통일하여 흰색 여백 원천 차단 ★ */
-        html, body { background-color: #333; margin: 0; padding: 0; }
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; }
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        @import url('https://fonts.googleapis.com/css2?family=Tomorrow:wght@500;600;700&display=swap');
         
-        #game-stage { 
-            position: relative; width: 393px; height: 852px; 
-            background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5); 
-        }
-
-        /* --- 메인 화면 --- */
-        #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
+        body { margin: 0; padding: 0; background-color: #333; font-family: 'Pretendard', sans-serif; overflow: hidden; touch-action: none; user-select: none; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #game-container { position: relative; width: 393px; height: 852px; overflow: hidden; background: #BBE5FF; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        #main-screen { position: absolute; inset: 0; background: url('bg_main.png') no-repeat center center / cover; z-index: 100; }
         
-        #main-rive-container { 
-            position: absolute; 
-            top: 0px; 
-            left: 0; 
-            width: 100%; 
-            height: 852px; 
-            pointer-events: none; 
-        }
-        #main-canvas { width: 100%; height: 100%; }
+        /* ★ Rive 캔버스 컨테이너 매칭 수정 (inset: 0, width/height: 100%) ★ */
+        #rive-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 105; opacity: 0; transition: opacity 0.5s ease-in-out; }
         
-        #start-button {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-            width: 340px; height: 75px; background-image: url('btn_start.png'); background-size: contain; 
-            background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001;
+        canvas { display: block; width: 100%; height: 100%; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        #loading-text {
+            position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+            font-size: 20px; font-weight: 700; color: #333; z-index: 110;
+            animation: pulse 1s infinite alternate;
         }
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
+        #start-btn { display: none; position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%); width: 85%; cursor: pointer; z-index: 110; }
 
-        /* --- 결과 화면 --- */
-        #result-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); 
-            z-index: 3000; display: none;
+        #hud { position: absolute; top: 0; left: 0; width: 100%; z-index: 50; display: none; pointer-events: none; }
+        .nav-bar img { width: 100%; display: block; }
+        
+        .hud-info { width: 100%; padding: 12px 20px 0; box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start; }
+        .hud-left { display: flex; align-items: center; gap: 4px; margin-left: -17px; margin-top: -2px; }
+        
+        .altimeter-wrap { position: relative; width: 50px; height: 50px; } 
+        .alt-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+        #alt-niddle { transform-origin: center; transform: rotate(0deg); }
+
+        .dist-val-wrap { font-family: "Tomorrow", sans-serif; font-size: 32px; font-weight: 600; color: #000; letter-spacing: -1px; line-height: 1; display: flex; align-items: baseline; }
+        #dist-val { position: relative; top: -1px; }
+        .dist-unit { font-family: 'Pretendard', sans-serif; font-size: 20px; font-weight: 700; margin-left: 2px; color: inherit; position: relative; top: -1px; }
+
+        #altitude-area.is-danger .dist-val-wrap, #altitude-area.is-danger #dist-val, #altitude-area.is-danger .dist-unit { color: #D4574B !important; }
+        .danger-pulse { animation: extreme-pulse 0.135s infinite alternate ease-in-out; }
+        @keyframes extreme-pulse { from { transform: scale(1.0); } to { transform: scale(1.05); } }
+        
+        .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .ingame-score-bg { background: #fff; height: 41px; width: 120px; padding: 0 12px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; }
+        .ingame-score-bg img { width: 28px; height: 28px; object-fit: contain; }
+        .ingame-score-bg span { font-family: "Tomorrow", sans-serif; font-size: 20px; font-weight: 600; color: #000; }
+
+        #life-container { display: flex; align-items: center; gap: 4px; padding-right: 4px; margin-top: -2px; }
+        #life-icon { width: 40px; height: 40px; object-fit: contain; }
+        #life-text { font-family: "Tomorrow", sans-serif; font-size: 17px; font-weight: 500; color: #000; letter-spacing: 0.08em; }
+
+        #result-screen { 
+            position: absolute; inset: 0; z-index:200; display:none; 
+            flex-direction:column; justify-content:center; align-items:center; color:white; text-align:center; 
         }
         
-        .result-card {
-            position: absolute; top: 50%; left: 50%; width: 348px; 
-            background: #FFF; border-radius: 22px; padding: 32px 24px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            box-sizing: border-box; transform: translate(-50%, calc(-50% + 30px));
-            opacity: 0; transition: all 0.4s ease-out;
-        }
-        #result-screen.show .result-card { transform: translate(-50%, -50%); opacity: 1; }
-        
-        .res-title { font-size: 20px; font-weight: 600; color: #000; margin-bottom: 24px; } 
-        .res-info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; }
-        .res-info-label { display: flex; align-items: center; font-size: 16px; font-weight: 700; color: #333; }
-        .res-info-label img { width: 22px; height: 22px; margin-right: 8px; }
-        .res-info-value { font-size: 18px; font-weight: 800; color: #333; }
-
-        .res-total-value { 
-            display: flex; align-items: baseline; justify-content: center;
-            color: #333; margin: 20px 0 10px; font-family: 'Poetsen One', sans-serif; letter-spacing: -1px;
-        }
-        #res-rate-num { font-size: 46px; }
-        #res-rate-percent { font-size: 40px; margin-left: 2px; }
-
-        .result-buttons { 
-            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 10px; width: 348px; box-sizing: border-box;
-        }
-        .btn-res { height: 64px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; }
-        #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
-        #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
-
-        /* --- 인게임 UI --- */
-        #ingame-ui { display: none; }
-        #btn-close-wrap { position: absolute; top: 16px; left: 4px; width: 44px; height: 44px; z-index: 1001; cursor: pointer; }
-        #btn-close-wrap img { width: 100%; height: 100%; display: block; object-fit: contain; }
-        .header-ui-container { position: absolute; top: 75px; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; pointer-events: none; }
-        #score-board { font-family: 'Poetsen One', sans-serif; font-size: 38px; color: #2D1D1C; line-height: 1; }
-        .rate-capsule { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 2px solid #F0E0C6; border-radius: 30px; width: 110px; height: 46px; box-sizing: border-box; padding: 0 15px; }
-        #rate-board { font-size: 20px; font-weight: 800; color: #2D1D1C; font-family: 'Arial', sans-serif; }
-
-        /* --- 게임 요소 & 컨트롤러 --- */
-        #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
-        canvas { width: 100%; height: 100%; }
-        .platform { position: absolute; background-size: 100% 100%; z-index: 5; transition: opacity 0.2s; pointer-events: none; }
-        .mouse-enemy { position: absolute; width: 72px; height: 54px; background-size: contain; background-repeat: no-repeat; z-index: 6; pointer-events: none; }
-        .damage-effect { position: absolute; width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; z-index: 5.5; pointer-events: none; }
-        .game-item { position: absolute; width: 50px; height: 50px; background-size: contain; background-repeat: no-repeat; z-index: 7; pointer-events: none; }
-        .pickup-effect { position: absolute; width: 160px; height: 80px; background-image: url('effect_pickup.png'); background-size: contain; background-repeat: no-repeat; z-index: 120; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
-        .wood-chunk { position: absolute; background-color: #A1887F; z-index: 4; pointer-events: none; border-radius: 1px; }
-        .gold-glow { filter: drop-shadow(0 0 15px gold); }
-
-        #touch-zone {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 900; display: none; cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .controller { 
-            position: absolute; width: 90px; height: 90px; 
-            background-size: contain; z-index: 950; display: none; 
-            pointer-events: none; 
-        }
-        #btn-left { left: 30px; bottom: 40px; transform: scaleX(-1); }
-        #btn-right { right: 30px; bottom: 40px; }
-        .ctrl-default { background-image: url('controller_Default.png'); }
-        .ctrl-pressed { background-image: url('controller_pressed.png'); }
+        .result-content-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 80px; }
+        .btn-group { position: absolute; bottom: 60px; left: 24px; right: 24px; display: flex; gap: 12px; }
     </style>
 </head>
 <body>
 
-<div id="game-stage">
+<div id="game-container">
     <div id="main-screen">
-        <div id="main-rive-container"><canvas id="main-canvas"></canvas></div>
-        <button id="start-button" onclick="startGame()"></button>
+        <canvas id="rive-canvas"></canvas>
+        <div id="loading-text"> </div>
+        <img src="btn_start.svg" id="start-btn" onclick="forceStart()">
     </div>
+
+    <div id="hud">
+        <div class="nav-bar"><img src="ingae_Navigation.png"></div>
+        <div class="hud-info">
+            <div id="altitude-area" class="hud-left">
+                <div class="altimeter-wrap">
+                    <img src="altimeter_box.svg" class="alt-img">
+                    <img src="altimeter_niddle.svg" id="alt-niddle" class="alt-img">
+                </div>
+                <div class="dist-val-wrap"><span id="dist-val">1500</span><span class="dist-unit">m</span></div>
+            </div>
+            <div class="hud-right">
+                <div class="ingame-score-bg">
+                    <img src="create_s.svg">
+                    <span id="score-val">0</span>
+                </div>
+                <div id="life-container">
+                    <img id="life-icon" src="life.png">
+                    <span id="life-text">x3</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
 
     <div id="result-screen">
-        <div class="result-card">
-            <div class="res-title">챌린지 결과</div>
-            <div class="res-info-row">
-                <div class="res-info-label"><img src="pogo_s.png" alt="pogo"> 올라간 거리</div>
-                <div class="res-info-value" id="res-distance">0m</div>
-            </div>
-            <div class="res-info-row">
-                <div class="res-info-label"><img src="clover_s.png" alt="clover"> 클로버 획득</div>
-                <div class="res-info-value" id="res-clover">0개</div>
-            </div>
-            <div class="res-total-value">
-                <span id="res-rate-num">0.00</span><span id="res-rate-percent">%</span>
-            </div>
+        <div class="result-content-wrap">
+            <h1 id="result-title" style="font-size: 46px; font-weight: 700; margin-bottom: 12px; margin-top: 0;">작전 성공!</h1>
+            
+            <p id="result-desc" style="font-size: 18px; font-weight: 500; margin: 0 0 30px 0;">
+                보급품 <span id="final-score" style="font-size: 24px; font-weight: 600;">0</span>개 획득 했어요
+            </p>
+            
+            <img id="result-img" src="result_complete.png" style="width: 189px; height: 189px; object-fit: contain; margin-top: 63px;">
         </div>
         
-        <div class="result-buttons">
-            <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인</button>
-            <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
+        <div class="btn-group">
+            <button onclick="goToMain()" style="flex: 1; height: 64px; background-color: #293257; color: #ffffff; font-size: 18px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; font-family: 'Pretendard', sans-serif;">메인</button>
+            <button onclick="retryGame()" style="flex: 1; height: 64px; background-color: #FFDB29; color: #111111; font-size: 18px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; font-family: 'Pretendard', sans-serif;">재도전</button>
         </div>
     </div>
-
-    <div id="ingame-ui">
-        <div id="btn-close-wrap" onclick="location.reload();"><img src="close.png" alt="close"></div>
-        <div class="header-ui-container">
-            <div id="score-board">0m</div>
-            <div class="rate-capsule"><img src="clover_s.png" style="width:25px;" alt="clover"><span id="rate-board">0</span></div>
-        </div>
-    </div>
-    
-    <div id="touch-zone"></div>
-    <div id="btn-left" class="controller ctrl-default"></div>
-    <div id="btn-right" class="controller ctrl-default"></div>
-    
-    <div id="canvas-container"><canvas id="canvas"></canvas></div>
 </div>
 
 <script>
-const preloadImages = [
-    'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
-    'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
-    'item_clover.png', 'item_gold.png', 'wood_1.png', 'wood_2.png', 'wood_3.png',
-    'block_1.png', 'block_2.png', 'block_3.png', 'pogo_s.png',
-    'controller_Default.png', 'controller_pressed.png'
-];
-preloadImages.forEach(src => { const img = new Image(); img.src = src; });
-
-const PHYSICS = { gravity: 0.81, jumpPower: -18.9, superJumpPower: -45, moveSpeed: 7, motionHold: 10 };
-const PLATFORM_TYPES = { wood: ['wood_1.png', 'wood_2.png', 'wood_3.png'], block: ['block_1.png', 'block_2.png', 'block_3.png'] };
-const SIZES = [138, 98, 58];
-
-let isPlaying = false, isSuperJumping = false, isGameOver = false;
-let currentY = 0, velocityY = 0, posX = 0, score = 0, cloverCount = 0, bgScrollY = 0;
-let maxReachY = 0;
-let riveInstance, keys = {}, currentScale = 1, platforms = [], woodParticles = [], motionTimer = 0, lastLoadedFile = "", mouseAnimFrame = 0;
-
-let lastTime = performance.now();
-const FPS = 60;
-const fpsInterval = 1000 / FPS;
-let accumulator = 0;
-
-const mainRive = new rive.Rive({
-    src: 'kongsik.riv',
-    canvas: document.getElementById('main-canvas'),
-    autoplay: true,
-    stateMachines: 'State Machine 1',
-    onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
-});
-
-function startGame() {
-    document.getElementById('main-screen').style.display = 'none';
-    document.getElementById('ingame-ui').style.display = 'block';
-    document.getElementById('canvas-container').style.display = 'block';
+    const imgList = [
+        'bg_main', 'bg_main.png', 
+        'btn_start', 'btn_start.svg',
+        'bg_complete', 'bg_complete.png',             
+        'bg_incomplete', 'bg_incomplete.png',         
+        'result_complete', 'result_complete.png',     
+        'result_incomplete', 'result_incomplete.png', 
+        'player', 'dong_chun.svg', 'face_happy', 'dong_chun_happy.svg', 'face_miss', 'dong_chun_miss.svg', 
+        'crate', 'create_m.png', 'gold', 'gold.svg', 'heli', 'heli.png', 
+        'cloud1', 'cloud_1.svg', 'cloud2', 'cloud_2.svg', 'cloud3', 'cloud_3.svg', 
+        'land', '03_ingame_land.png', 'effect', 'effect_pickup.png', 'damage', 'damege.svg', 
+        'mountain', 'surface_mountain.png', 'grass', 'surface_grass.png', 'target', 'surface_target.svg', 
+        'windL', 'wind_L.svg', 'windR', 'wind_R.svg', 'windL_move', 'wind_L_move.svg', 'windR_move', 'wind_R_move.svg'
+    ];
+    const imgs = {};
     
-    document.getElementById('touch-zone').style.display = 'block'; 
-    document.querySelectorAll('.controller').forEach(el => el.style.display = 'block');
-    
-    document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
-    isPlaying = true; isGameOver = false;
-    keys = {}; 
-    initPlatforms();
-    
-    lastTime = performance.now(); 
-    accumulator = 0;
-    requestAnimationFrame(update);
-}
+    let isRiveLoaded = false;
+    let imagesLoadedCount = 0;
+    const totalImagesToLoad = imgList.length / 2;
 
-function resetGame() {
-    const screen = document.getElementById('result-screen');
-    screen.style.display = 'none';
-    screen.classList.remove('show');
-    keys = {};
-    isGameOver = false;
-    isPlaying = true;
-    isSuperJumping = false;
-    lastLoadedFile = "";
-    document.getElementById('canvas-container').classList.remove('gold-glow');
-    document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    document.getElementById('btn-right').classList.remove('ctrl-pressed');
-    initPlatforms();
-    
-    lastTime = performance.now(); 
-    accumulator = 0;
-    requestAnimationFrame(update); 
-}
-
-function showResult() {
-    isPlaying = false; isGameOver = true;
-    keys = {}; 
-    document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    document.getElementById('btn-right').classList.remove('ctrl-pressed');
-    
-    const finalDist = Math.floor(score * 0.01);
-    const totalRate = (score * 0.0001) + (cloverCount * 0.1);
-    document.getElementById('res-distance').innerText = `${finalDist}m`;
-    document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    document.getElementById('res-rate-num').innerText = totalRate.toFixed(2);
-    const screen = document.getElementById('result-screen');
-    screen.style.display = 'block';
-    setTimeout(() => screen.classList.add('show'), 10);
-}
-
-function loadRive(fileName) {
-    if (lastLoadedFile === fileName) return;
-    lastLoadedFile = fileName;
-    if (riveInstance) riveInstance.cleanup();
-    riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
-}
-
-window.addEventListener('keydown', (e) => { 
-    if(isGameOver) return;
-    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = true; document.getElementById('btn-left').classList.add('ctrl-pressed'); }
-    if (e.code === 'ArrowRight') { keys['ArrowRight'] = true; document.getElementById('btn-right').classList.add('ctrl-pressed'); }
-});
-window.addEventListener('keyup', (e) => { 
-    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = false; document.getElementById('btn-left').classList.remove('ctrl-pressed'); }
-    if (e.code === 'ArrowRight') { keys['ArrowRight'] = false; document.getElementById('btn-right').classList.remove('ctrl-pressed'); }
-});
-
-const touchZone = document.getElementById('touch-zone');
-
-const handlePointer = (e, isDown) => {
-    e.preventDefault();
-    if (isGameOver || !isPlaying) {
-        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-        return;
-    }
-    
-    if (!isDown) {
-        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-        return;
-    }
-    
-    let clientX;
-    if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-    } else {
-        clientX = e.clientX;
-    }
-    
-    const rect = touchZone.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const mid = rect.width / 2;
-    
-    if (x < mid) {
-        keys['ArrowLeft'] = true; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.add('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-    } else {
-        keys['ArrowRight'] = true; keys['ArrowLeft'] = false;
-        document.getElementById('btn-right').classList.add('ctrl-pressed');
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    }
-};
-
-touchZone.addEventListener('touchstart', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchend', (e) => handlePointer(e, false), {passive: false});
-touchZone.addEventListener('touchcancel', (e) => handlePointer(e, false), {passive: false});
-
-let isMouseDown = false;
-touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handlePointer(e, true); });
-touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handlePointer(e, true); });
-touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handlePointer(e, false); });
-touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handlePointer(e, false); });
-
-class WoodParticle {
-    constructor(x, y) {
-        this.x = x; this.y = y;
-        this.vx = (Math.random() - 0.5) * 12; this.vy = (Math.random() - 0.5) * 12 - 4;
-        this.size = 2 + Math.random() * 3; this.rotation = Math.random() * 360;
-        this.life = 1.0;
-    }
-    update() { this.x += this.vx; this.y += this.vy; this.vy += 0.45; this.life -= 0.025; }
-}
-
-function createPlatformData(yPos) {
-    let distM = Math.floor(score * 0.01);
-    const rand = Math.random();
-    let sizeIdx = distM < 100 ? Math.floor(rand * 2) : Math.floor(rand * SIZES.length);
-    const width = SIZES[sizeIdx];
-    let isBreakable = (rand < 0.15 + (Math.min(distM, 500) / 500) * 0.75);
-    let moveType = rand < Math.min(0.5, 0.1 + (0.4 * (distM / 500))) ? (distM < 150 ? 'h' : (Math.random() > 0.5 ? 'h' : 'v')) : 'normal';
-    let canHaveMouse = (width >= 98) && (rand < 0.2); 
-    let itemType = (!canHaveMouse && rand > 0.8) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
-    return { 
-        x: Math.random() * (393 - width), y: yPos, baseY: yPos, w: width, h: 22, 
-        img: PLATFORM_TYPES[isBreakable?'wood':'block'][sizeIdx], 
-        isBreakable, hasMouse: canHaveMouse, mouseX: Math.random() * (width - 72), mouseDir: 1, mouseSpeed: 0.7 + Math.random() * 0.6, mouseWaitTimer: 0, mouseYOffset: -52, mouseVY: 0,
-        mouseHit: false, mouseHitTimer: 0, mouseStunTimer: 0, 
-        item: itemType, itemCollected: false, type: moveType, speed: 1.6, verticalRange: 40 + Math.random() * 40, vPhase: Math.random() * Math.PI * 2, isBroken: false 
-    };
-}
-
-function initPlatforms() {
-    score = 0; cloverCount = 0; currentY = 0; velocityY = 0; posX = 0; woodParticles = []; bgScrollY = 0; maxReachY = 0;
-    document.getElementById('score-board').innerText = "0m";
-    document.getElementById('rate-board').innerText = "0";
-    document.getElementById('game-stage').style.backgroundPositionY = '0px';
-    platforms = [];
-    
-    let lastY = 752; 
-    for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
-    platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
-    loadRive('kongsik_ingame_air.riv');
-}
-
-function spawnPickupEffect(x, y) {
-    const eff = document.createElement('div');
-    eff.className = 'pickup-effect';
-    eff.style.left = (x - 80) + 'px'; eff.style.top = (y - 40) + 'px';
-    document.getElementById('game-stage').appendChild(eff);
-    setTimeout(() => { eff.style.transform = 'translateY(-80px)'; eff.style.opacity = '0'; }, 10);
-    setTimeout(() => eff.remove(), 800);
-}
-
-function update(currentTime) {
-    if (!isPlaying) { 
-        if(!isGameOver) requestAnimationFrame(update); 
-        return; 
-    }
-
-    requestAnimationFrame(update);
-
-    if (!currentTime) currentTime = performance.now();
-    let deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-
-    if (deltaTime > 100) deltaTime = 100;
-    accumulator += deltaTime;
-
-    while (accumulator >= fpsInterval) {
-        
-        if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
-        if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
-        posX = Math.max(-153, Math.min(153, posX));
-        velocityY += isSuperJumping ? PHYSICS.gravity * 0.5 : PHYSICS.gravity;
-        currentY += velocityY;
-        mouseAnimFrame = (mouseAnimFrame + 1) % 20;
-        let currentTotalY = -currentY + bgScrollY;
-        if (currentTotalY > maxReachY) { maxReachY = currentTotalY; score = maxReachY; document.getElementById('score-board').innerText = Math.floor(score * 0.01) + "m"; }
-        if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
-        woodParticles.forEach(p => p.update());
-        woodParticles = woodParticles.filter(p => p.life > 0);
-        
-        const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; 
-        
-        platforms.forEach(p => {
-            if (p.hasMouse) {
-                if (p.mouseHitTimer > 0) p.mouseHitTimer--; 
-                if (p.mouseStunTimer > 0) { p.mouseStunTimer--; if (p.mouseStunTimer <= 0) p.mouseHit = false; }
-                if (!p.isBroken) {
-                    if (p.mouseWaitTimer > 0) p.mouseWaitTimer--;
-                    else { if(!p.mouseHit) { p.mouseX += p.mouseDir * p.mouseSpeed; if (p.mouseX <= 0 || p.mouseX + 72 >= p.w) { p.mouseDir *= -1; p.mouseWaitTimer = 30; } } }
-                    let mx = p.x + p.mouseX, my = p.y - 35;
-                    if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
-                        velocityY = -15; posX += (posX > (mx - p.x) ? 100 : -100); p.mouseHit = true; p.mouseHitTimer = 15; p.mouseStunTimer = 60; 
-                    }
-                } else { p.mouseVY += 0.6; p.mouseYOffset += p.mouseVY; }
-            }
-            if (!p.isBroken) {
-                if (p.type === 'h') { p.x += p.speed; if (p.x <= 0 || p.x + p.w >= 393) p.speed *= -1; } 
-                else if (p.type === 'v') { p.vPhase += 0.03; p.y = p.baseY + Math.sin(p.vPhase) * p.verticalRange; }
-                if (p.item && !p.itemCollected) {
-                    let ix = p.x + p.w/2 - 25, iy = p.y - 55;
-                    if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
-                        p.itemCollected = true;
-                        if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
-                        else if (p.item === 'gold') { isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
-                    }
-                }
-                if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
-                    
-                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
-                    if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
-                }
-            }
-        });
-
-        if (motionTimer > 0) { motionTimer--; if (motionTimer === 1) loadRive('kongsik_ingame_air.riv'); }
-        if (currentY < -250) {
-            let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
-            
-            document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; 
-            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
-            woodParticles.forEach(p => p.y += diff);
+    function checkAllLoaded() {
+        if (isRiveLoaded && imagesLoadedCount >= totalImagesToLoad) {
+            document.getElementById('loading-text').style.display = 'none';
+            document.getElementById('start-btn').style.display = 'block';
+            document.getElementById('rive-canvas').style.opacity = '1';
         }
-        
-        if (charFootY > 1050) showResult(); 
-
-        accumulator -= fpsInterval;
     }
 
-    if (isPlaying && !isGameOver) {
-        document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
-        const stage = document.getElementById('game-stage');
-        
-        document.querySelectorAll('.platform, .mouse-enemy, .game-item, .wood-chunk, .damage-effect').forEach(el => el.remove());
-        
-        woodParticles.forEach(p => { const chunk = document.createElement('div'); chunk.className = 'wood-chunk'; chunk.style.cssText = `left:${p.x}px; top:${p.y}px; width:${p.size}px; height:${p.size}px; opacity:${p.life};`; stage.appendChild(chunk); });
-        
-        platforms.forEach(p => {
-            if (!p.isBroken) {
-                const d = document.createElement('div'); d.className = 'platform'; d.style.cssText = `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:22px;background-image:url('${p.img}');`; stage.appendChild(d);
-                if (p.item && !p.itemCollected) { const itemDiv = document.createElement('div'); itemDiv.className = 'game-item'; itemDiv.style.cssText = `left:${p.x + p.w/2 - 25}px; top:${p.y - 55}px; background-image:url('item_${p.item}.png');`; stage.appendChild(itemDiv); }
-            }
-            if (p.hasMouse) {
-                if (p.mouseHit && p.mouseHitTimer > 0) {
-                    const eff = document.createElement('div'); eff.className = 'damage-effect';
-                    let effImg = p.mouseHitTimer > 10 ? 'effect_damage1.png' : (p.mouseHitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
-                    eff.style.left = (p.x + p.mouseX + 6) + 'px'; eff.style.top = (p.y + p.mouseYOffset - 10) + 'px'; eff.style.backgroundImage = `url('${effImg}')`;
-                    stage.appendChild(eff);
-                }
-                const m = document.createElement('div'); m.className = 'mouse-enemy'; 
-                let mouseImg = p.mouseHit ? 'mouse3.png' : (p.mouseWaitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
-                m.style.cssText = `left:${p.x + p.mouseX}px; top:${p.y + p.mouseYOffset}px; background-image:url('${mouseImg}'); transform:scaleX(${p.mouseDir});`; 
-                stage.appendChild(m); 
-            }
+    imgList.forEach((val, i) => { 
+        if(i % 2 === 0) { 
+            imgs[val] = new Image(); 
+            imgs[val].onload = () => { imagesLoadedCount++; checkAllLoaded(); };
+            imgs[val].onerror = () => { imagesLoadedCount++; checkAllLoaded(); };
+            imgs[val].src = imgList[i+1]; 
+        } 
+    });
+
+    let riveInstance = null;
+    function initRive() {
+        riveInstance = new rive.Rive({
+            src: 'dongdongground_0.1.riv', 
+            canvas: document.getElementById('rive-canvas'),
+            autoplay: true,
+            stateMachines: 'State Machine 1', 
+            layout: new rive.Layout({ fit: rive.Fit.Cover, alignment: rive.Alignment.Center }),
+            onLoad: () => { 
+                riveInstance.resizeDrawingSurfaceToCanvas(); 
+                isRiveLoaded = true;
+                checkAllLoaded(); 
+            },
         });
     }
-}
+    window.addEventListener('load', initRive);
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        if (type === 'item') { 
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
+            gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 0.1);
+        } else if (type === 'hit') { 
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(250, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+            gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 0.15);
+        } else if (type === 'gold') { 
+            for(let i=0; i<3; i++) {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                const startTime = now + (i * 0.04);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(1000 + (i * 300), startTime);
+                osc.frequency.exponentialRampToValueAtTime(2000 + (i * 300), startTime + 0.05);
+                gain.gain.setValueAtTime(0.1, startTime); gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.05);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(startTime); osc.stop(startTime + 0.05);
+            }
+        }
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const WIDTH = 393 * 2, HEIGHT = 852 * 2; 
+    canvas.width = WIDTH; canvas.height = HEIGHT;
+    const ctx = canvas.getContext('2d');
+
+    let state = 'MAIN', frame = 0, dist = 1500, score = 0, lives = 3;
+    let combo = 0, comboTimer = 0, popScale = 1.0, isGoldFever = false;
+    let comboParticles = []; let windTimer = 0, windAlphaBase = 0;
+    const pX = WIDTH / 2, pY = (HEIGHT * 0.28) + 100 - (43 * 2); 
+    
+    let pDir = 1, objects = [], clouds = [], fx = [];
+    let stopSpawning = false, mountainX = 0, grassX = 0, hitShakeFrame = 0;
+    let faceTimer = 0, currentFace = 'normal', currentRotation = 0, rotVel = 0;
+    const springK = 0.18, friction = 0.75, GLOBAL_SPEED = 17.7; 
+    let landY = HEIGHT + 1000, spawnDeck = [];
+
+    let lastTime = performance.now();
+    const FPS = 60;
+    const fpsInterval = 1000 / FPS; 
+    let accumulator = 0;
+    
+    let nextSpawnFrame = 0; 
+
+    function updateLifeUI() { 
+        const lifeTextEl = document.getElementById('life-text');
+        if(lifeTextEl) { lifeTextEl.innerText = 'x' + lives; }
+    }
+
+    function updateAltimeter(currentDist) {
+        const niddle = document.getElementById('alt-niddle');
+        if (!niddle) return;
+        const ratio = 1 - (Math.max(0, currentDist) / 1500);
+        const angle = ratio * 180;
+        niddle.style.transform = `rotate(${angle}deg)`;
+    }
+
+    function refillSpawnDeck() {
+        let newItems = ['GOLD', 'BAD', 'BAD', 'BAD', 'BAD', 'BAD', 'BAD', 'BAD', 'BAD', 'BAD', 'BAD'];
+        for(let i=0; i<90; i++) newItems.push('CRATE');
+        for (let i = newItems.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [newItems[i], newItems[j]] = [newItems[j], newItems[i]]; }
+        spawnDeck = [...newItems];
+    }
+
+    function spawnCloud(y) {
+        const depth = Math.floor(Math.random() * 2);
+        const baseScale = depth === 0 ? 0.39 : 0.26;
+        clouds.push({ x: Math.random() * WIDTH, y: y || HEIGHT + 150, img: imgs['cloud'+(Math.floor(Math.random()*3)+1)], scale: baseScale * 1.3, alpha: depth === 0 ? 0.8 : 0.5, speed: depth === 0 ? 4.0 : 2.0, depth });
+    }
+
+    function spawnPattern() {
+        if(stopSpawning) return;
+        const patternRand = Math.random();
+
+        if (patternRand < 0.15) { 
+            const gap = 200 + Math.random() * 150;
+            const startX = Math.random() * (WIDTH - gap - 120) + 60;
+            spawnObj(startX);
+            spawnObj(startX + gap);
+        } else if (patternRand < 0.25) { 
+            const midX = WIDTH / 2 + (Math.random() - 0.5) * 100;
+            spawnObj(midX - 180);
+            spawnObj(midX);
+            spawnObj(midX + 180);
+        } else { 
+            spawnObj();
+        }
+    }
+
+    function spawnObj(forcedX) {
+        if(stopSpawning) return;
+        if(spawnDeck.length === 0) refillSpawnDeck();
+        const type = spawnDeck.shift(); 
+        let x = forcedX || (Math.random() * (WIDTH - 120) + 60); 
+        const spawnY = HEIGHT + 200;
+        if(type === 'BAD') objects.push({ x, y: spawnY, type: 'BAD', img: imgs.heli, flipped: Math.random() > 0.5 });
+        else if(type === 'GOLD') objects.push({ x, y: spawnY, type: 'GOLD', img: imgs.gold });
+        else objects.push({ x, y: spawnY, type: 'CRATE', img: imgs.crate });
+    }
+
+    function addCombo() {
+        combo++; comboTimer = 30; popScale = 1.4;
+        for(let i=0; i<8; i++) { comboParticles.push({ x: 250 * 2 + 20, y: (150 * 2) + 60, vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15, life: 30, size: Math.random() * 6 + 4 }); }
+    }
+
+    function triggerGoldFever() {
+        playSound('gold'); currentFace = 'happy'; faceTimer = 78; isGoldFever = true; 
+        objects.forEach(o => { if(o.type === 'CRATE') { score += (combo >= 20) ? 2 : 1; addCombo(); fx.push({ x: o.x, y: o.y, img: imgs.effect, life: 60, follow: false, vy: -5, isEffect: true }); } });
+        objects = [];
+    }
+
+    function gameOver(title) {
+        state = 'END'; 
+        const resultScreen = document.getElementById('result-screen');
+        const descEl = document.getElementById('result-desc');
+        const imgEl = document.getElementById('result-img');
+        const hud = document.getElementById('hud');
+        const lifeContainer = document.getElementById('life-container');
+        
+        document.getElementById('result-title').innerText = title;
+
+        if (title === "실패") {
+            resultScreen.style.background = "url('bg_incomplete.png') no-repeat center center / cover"; 
+            resultScreen.style.color = '#FFFFFF';
+            descEl.innerHTML = "다시 도전해볼까요?";
+            imgEl.src = "result_incomplete.png";
+            hud.style.zIndex = '50';
+            lifeContainer.style.display = 'flex';
+        } else {
+            resultScreen.style.background = "url('bg_complete.png') no-repeat center center / cover"; 
+            resultScreen.style.color = '#111111';
+            descEl.innerHTML = `보급품 <span id="final-score" style="font-size: 24px; font-weight: 600;">${score}</span>개 획득 했어요`;
+            imgEl.src = "result_complete.png";
+            hud.style.zIndex = '250'; 
+            lifeContainer.style.display = 'none'; 
+        }
+
+        resultScreen.style.display = 'flex';
+    }
+
+    function goToMain() {
+        location.reload();
+    }
+
+    function retryGame() {
+        document.getElementById('result-screen').style.display = 'none';
+        
+        dist = 1500; score = 0; lives = 3; combo = 0; comboTimer = 0; popScale = 1.0; isGoldFever = false;
+        comboParticles = []; windTimer = 0; windAlphaBase = 0;
+        pDir = 1; objects = []; clouds = []; fx = [];
+        stopSpawning = false; mountainX = 0; grassX = 0; hitShakeFrame = 0;
+        faceTimer = 0; currentFace = 'normal'; currentRotation = 0; rotVel = 0;
+        landY = HEIGHT + 1000; spawnDeck = [];
+        
+        updateLifeUI();
+        document.getElementById('dist-val').innerText = '1500';
+        document.getElementById('score-val').innerText = '0';
+        updateAltimeter(1500);
+        document.getElementById('hud').style.zIndex = '50';
+        document.getElementById('life-container').style.display = 'flex'; 
+        
+        state = 'PLAY';
+        for(let j=0; j<5; j++) spawnCloud(Math.random() * HEIGHT);
+
+        lastTime = performance.now();
+        accumulator = 0;
+        nextSpawnFrame = 0; 
+        requestAnimationFrame(loop); 
+    }
+
+    function forceStart() {
+        if (state !== 'MAIN') return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if(riveInstance) riveInstance.cleanup(); 
+        document.getElementById('main-screen').style.display = 'none';
+        document.getElementById('hud').style.display = 'block';
+        state = 'PLAY';
+        for(let j=0; j<5; j++) spawnCloud(Math.random() * HEIGHT);
+        
+        lastTime = performance.now();
+        accumulator = 0;
+        nextSpawnFrame = 0; 
+        requestAnimationFrame(loop); 
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            if (state === 'MAIN') forceStart();
+            else if (state === 'PLAY') { pDir *= -1; windTimer = 0; windAlphaBase = 0; }
+            else if (state === 'END') retryGame(); 
+        }
+    });
+
+    canvas.addEventListener('mousedown', () => { if(state === 'PLAY') { pDir *= -1; windTimer = 0; windAlphaBase = 0; } });
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if(state === 'PLAY') { pDir *= -1; windTimer = 0; windAlphaBase = 0; } }, {passive: false});
+
+    function loop(currentTime) {
+        if(state === 'END') return;
+
+        requestAnimationFrame(loop);
+
+        if (!currentTime) currentTime = performance.now();
+        let deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        if (deltaTime > 100) deltaTime = 100;
+
+        accumulator += deltaTime;
+
+        while (accumulator >= fpsInterval) {
+            
+            frame++; 
+            if (isGoldFever) comboTimer = 30;
+            else { if (comboTimer > 0) comboTimer--; else combo = 0; }
+
+            if(popScale > 1.0) popScale -= 0.08; if(popScale < 1.0) popScale = 1.0;
+            let targetRot = (pDir === 1) ? -27 * Math.PI / 180 : 0;
+            rotVel = (rotVel + (targetRot - currentRotation) * springK) * friction;
+            currentRotation += rotVel;
+
+            if(state === 'PLAY') {
+                dist -= 1.29; mountainX -= pDir * 2.07; grassX -= pDir * 11.5;
+                
+                if (frame >= nextSpawnFrame) {
+                    spawnPattern();
+                    const difficulty = Math.max(0, (1500 - dist) / 300); 
+                    const minInt = Math.max(4, 7 - Math.floor(difficulty));
+                    const maxInt = Math.max(8, 14 - Math.floor(difficulty));
+                    nextSpawnFrame = frame + Math.floor(Math.random() * (maxInt - minInt + 1)) + minInt;
+                }
+                
+                if(frame % 80 === 0) spawnCloud();
+                windTimer++; if(windAlphaBase < 1) windAlphaBase += 0.1; 
+            }
+
+            comboParticles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life--; if(p.life <= 0) comboParticles.splice(i, 1); });
+            
+            const currentDist = Math.max(0, Math.floor(dist));
+            document.getElementById('dist-val').innerText = currentDist;
+            updateAltimeter(currentDist);
+
+            const altitudeArea = document.getElementById('altitude-area');
+            if(currentDist <= 300) { 
+                altitudeArea.classList.add('is-danger'); 
+                if(currentDist > 0 && state === 'PLAY') altitudeArea.classList.add('danger-pulse'); 
+                else altitudeArea.classList.remove('danger-pulse');
+            } else altitudeArea.classList.remove('is-danger', 'danger-pulse');
+            
+            document.getElementById('score-val').innerText = score;
+            const targetArrivalY = pY + 140 - 248;
+            if(dist < 150 && state === 'PLAY') { 
+                if(landY > targetArrivalY) landY -= GLOBAL_SPEED; 
+                else { 
+                    landY = targetArrivalY; 
+                    if(dist <= 5) { dist = 0; state = 'LANDED'; setTimeout(() => gameOver("작전 성공!"), 500); } 
+                } 
+                stopSpawning = true; 
+            }
+
+            objects.forEach((o, i) => { 
+                o.y -= GLOBAL_SPEED; o.x -= pDir * 11.5; 
+                if(o.y < -200) { objects.splice(i, 1); return; } 
+                if(state === 'PLAY' && Math.sqrt((pX - o.x)**2 + (pY - o.y)**2) < 115) {
+                    if(o.type === 'BAD') { 
+                        playSound('hit'); lives--; score = Math.max(0, score - 10); combo = 0; comboTimer = 0; isGoldFever = false; 
+                        updateLifeUI(); hitShakeFrame = 10; currentFace = 'miss'; faceTimer = 78; 
+                        fx.push({ x: pX + 70, y: pY + 20, img: imgs.damage, life: 60, follow: true, vy: -4.2, isEffect: false }); 
+                        if(lives <= 0) setTimeout(() => gameOver("실패"), 500);
+                    } else if(o.type === 'GOLD') triggerGoldFever();
+                    else { 
+                        playSound('item'); score += (combo >= 20) ? 2 : 1; addCombo(); 
+                        if(isGoldFever) isGoldFever = false; 
+                        fx.push({ x: o.x, y: o.y, img: imgs.effect, life: 60, follow: false, vy: -5, isEffect: true }); 
+                    }
+                    objects.splice(i, 1);
+                }
+            });
+
+            clouds.forEach(c => { c.y -= c.speed; c.x -= pDir * c.speed * 0.3; });
+            fx.forEach((f, i) => { f.life--; if(f.life <= 0) { fx.splice(i, 1); return; } if(!f.follow) { f.x -= pDir * 11.5; f.y -= GLOBAL_SPEED; } f.y += f.vy || 0; });
+            if(hitShakeFrame > 0) hitShakeFrame--; 
+
+            accumulator -= fpsInterval;
+        }
+
+        draw(); 
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = '#BBE5FF'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        
+        clouds.forEach(c => { if(c.img.complete) { ctx.save(); ctx.globalAlpha = c.alpha; ctx.drawImage(c.img, c.x - (c.img.width*c.scale*2), c.y, c.img.width*c.scale*4, c.img.height*c.scale*4); ctx.restore(); } });
+        
+        ctx.save();
+        if(dist < 150) {
+            if(imgs.mountain.complete) { const mW = imgs.mountain.width * 0.82, mH = imgs.mountain.height * 0.82; for(let x = -3; x <= 3; x++) ctx.drawImage(imgs.mountain, ((mountainX * 1.0) % mW) + (x * mW), landY - mH, mW, mH); }
+            if(imgs.grass.complete) { ctx.fillStyle = '#5EC368'; ctx.fillRect(0, landY, WIDTH, HEIGHT); for(let x = -2; x <= 2; x++) ctx.drawImage(imgs.grass, ((grassX * 1.0) % WIDTH) + (x * WIDTH), landY, WIDTH, imgs.grass.height); }
+            if(imgs.target.complete) { const tW = imgs.target.width || 240, tH = imgs.target.height || 96; ctx.drawImage(imgs.target, pX - tW, landY + 180, tW * 2, tH * 2); }
+        }
+
+        if(state === 'PLAY' && windAlphaBase > 0) {
+            let imgNormal, imgMove; if(pDir === 1) { imgNormal = imgs.windR; imgMove = imgs.windR_move; } else { imgNormal = imgs.windL; imgMove = imgs.windL_move; }
+            if(imgNormal.complete && imgMove.complete) { 
+                ctx.save(); 
+                const s = 205; 
+                const baseX = WIDTH / 2 - s, baseY = 110 * 2; 
+                ctx.globalAlpha = windAlphaBase; 
+                ctx.drawImage(imgNormal, baseX, baseY, s * 2, s * 2); 
+                ctx.globalAlpha = windAlphaBase * (0.4 + Math.sin(frame * 0.25) * 0.4); 
+                ctx.drawImage(imgMove, baseX, baseY, s * 2, s * 2); 
+                ctx.restore(); 
+            }
+        }
+
+        objects.forEach(o => { 
+            if(o.img.complete) { 
+                ctx.save(); 
+                if(o.type === 'CRATE') { ctx.translate(o.x, o.y - (o.img.height/2)); ctx.rotate(Math.sin(frame * 0.13 + o.y * 0.005) * 0.2); ctx.drawImage(o.img, -o.img.width/2, 0, o.img.width, o.img.height); } 
+                else if(o.type === 'BAD') { ctx.translate(o.x, o.y); if(o.flipped) ctx.scale(-1, 1); ctx.drawImage(o.img, -o.img.width/2, -o.img.height/2, o.img.width, o.img.height); } 
+                else { ctx.translate(o.x, o.y); ctx.drawImage(o.img, -o.img.width, -o.img.height, o.img.width * 2, o.img.height * 2); }
+                ctx.restore(); 
+            } 
+        });
+
+        ctx.save(); 
+        let sX = (hitShakeFrame > 0) ? (Math.random() - 0.5) * 25 : 0; 
+        ctx.translate(pX + sX, pY + Math.sin(frame*0.08)*7.5); 
+        ctx.rotate(currentRotation); 
+        
+        let pImg = (faceTimer > 0) ? (currentFace === 'happy' ? imgs.face_happy : imgs.face_miss) : imgs.player;
+        if(faceTimer > 0) faceTimer--; 
+        if(pImg.complete) ctx.drawImage(pImg, -pImg.width, -pImg.height, pImg.width * 2, pImg.height * 2); 
+        ctx.restore();
+
+        fx.forEach(f => { if(f.img.complete) { ctx.save(); ctx.globalAlpha = Math.min(1, f.life / 20); if(f.isEffect) { ctx.drawImage(f.img, f.x - f.img.width / 2, f.y - f.img.height / 2, f.img.width, f.img.height); } else { ctx.drawImage(f.img, f.x - f.img.width, f.y - f.img.height, f.img.width * 2, f.img.height * 2); } ctx.restore(); } });
+        comboParticles.forEach(p => { ctx.fillStyle = '#FFEF6B'; ctx.globalAlpha = p.life / 30; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
+        ctx.restore(); 
+
+        if(combo > 1 || isGoldFever) {
+            ctx.save(); const comboX = 250 * 2, comboY = (150 * 2) + 32; ctx.translate(comboX, comboY); ctx.scale(popScale, popScale); ctx.translate(-comboX, -comboY); ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.filter = 'blur(0.5px)'; ctx.strokeStyle = '#FFFFFF'; ctx.fillStyle = (combo >= 20) ? '#A45AE4' : '#5094F9'; ctx.font = '700 80px "Tomorrow"'; ctx.strokeText(combo, comboX, comboY); ctx.fillText(combo, comboX, comboY); ctx.font = '700 32px "Pretendard"'; ctx.strokeText((combo >= 20) ? 'COMBO x2' : 'COMBO', comboX, comboY + 80); ctx.fillText((combo >= 20) ? 'COMBO x2' : 'COMBO', comboX, comboY + 80); ctx.filter = 'none'; ctx.restore();
+        }
+    }
+    draw();
 </script>
 </body>
 </html>
