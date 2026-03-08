@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 사운드적용</title>
+    <title>콩콩춘식 - 앱아이콘/OG적용</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -227,7 +227,7 @@ function playSfxJump() {
     osc.frequency.setValueAtTime(400, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.1);
     
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // 볼륨 낮춤
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
     
     osc.start();
@@ -253,23 +253,32 @@ function playSfxClover() {
     osc.stop(audioCtx.currentTime + 0.15);
 }
 
-// 3. 고구마 획득 (슈우웅 날아가는 소리)
+// 3. 고구마 획득 ★ 파워업 아르페지오 느낌으로 경쾌하게 수정! ★
 function playSfxSuperJump() {
     if (!audioCtx) return;
+    const t = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.5);
+    // 레트로 8비트 오락실 느낌을 살리는 'square' 파형 사용
+    osc.type = 'square';
     
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    // 빠르고 경쾌하게 3단계 화음을 타고 올라간 뒤 시원하게 고음으로 뻗음
+    osc.frequency.setValueAtTime(440, t);         // 라 (A4)
+    osc.frequency.setValueAtTime(554.37, t + 0.08); // 도# (C#5)
+    osc.frequency.setValueAtTime(659.25, t + 0.16); // 미 (E5)
+    osc.frequency.exponentialRampToValueAtTime(1760, t + 0.6); // 라 (A6)까지 시원하게!
     
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.5);
+    // 볼륨 조절: 부드럽게 커졌다가 사라짐 (귀 찢어짐 방지)
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.05);
+    gain.gain.setValueAtTime(0.08, t + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+    
+    osc.start(t);
+    osc.stop(t + 0.6);
 }
 
 // 4. 장애물(쥐돌이) 충돌 소리 (찌직!)
@@ -404,6 +413,8 @@ function startGame() {
     keys = {}; 
     initPlatforms();
     
+    playSfxJump(); 
+
     lastTime = performance.now(); 
     accumulator = 0;
     requestAnimationFrame(update);
@@ -601,7 +612,6 @@ function update(currentTime) {
                     if (p.mouseWaitTimer > 0) p.mouseWaitTimer--;
                     else { if(!p.mouseHit) { p.mouseX += p.mouseDir * p.mouseSpeed; if (p.mouseX <= 0 || p.mouseX + 72 >= p.w) { p.mouseDir *= -1; p.mouseWaitTimer = 30; } } }
                     let mx = p.x + p.mouseX, my = p.y - 35;
-                    // ★ 장애물 충돌 소리 재생 ★
                     if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
                         playSfxHit();
                         velocityY = -15; posX += (posX > (mx - p.x) ? 100 : -100); p.mouseHit = true; p.mouseHitTimer = 15; p.mouseStunTimer = 60; 
@@ -615,7 +625,6 @@ function update(currentTime) {
                     let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                     if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                         p.itemCollected = true;
-                        // ★ 아이템 획득 소리 재생 ★
                         if (p.item === 'clover') { 
                             playSfxClover();
                             cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); 
@@ -627,7 +636,6 @@ function update(currentTime) {
                     }
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
-                    // ★ 점프 소리 재생 ★
                     playSfxJump();
                     loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
