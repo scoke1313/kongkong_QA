@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 앱아이콘/OG적용</title>
+    <title>콩콩춘식 - 사운드적용</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -201,7 +201,97 @@
 </div>
 
 <script>
-// ★ 동적 UI 오프셋 제어 로직 추가 ★
+// ==========================================
+// ★ Web Audio API 기반 인공 효과음(SFX) 생성 ★
+// ==========================================
+let audioCtx;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// 1. 점프 소리 (귀여운 뿅!)
+function playSfxJump() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // 볼륨 낮춤
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+// 2. 클로버 획득 소리 (띠링!)
+function playSfxClover() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+    osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.05); 
+    
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.15);
+}
+
+// 3. 고구마 획득 (슈우웅 날아가는 소리)
+function playSfxSuperJump() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.5);
+    
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+}
+
+// 4. 장애물(쥐돌이) 충돌 소리 (찌직!)
+function playSfxHit() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+    
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+}
+// ==========================================
+
 function resizeGame() {
     const stage = document.getElementById('game-stage');
     const closeBtn = document.getElementById('btn-close-wrap');
@@ -222,30 +312,22 @@ function resizeGame() {
         let topPos = (window.innerHeight - scaledHeight) / 2;
         stage.style.top = topPos + 'px';
         
-        // 화면이 충분히 길어 크롭이 없을 땐 기본 위치 유지
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
     } else {
-        let topPos = window.innerHeight - scaledHeight; // 상단이 잘린 만큼의 픽셀 (음수)
+        let topPos = window.innerHeight - scaledHeight; 
         stage.style.top = topPos + 'px';
         
-        // 잘려나간 픽셀을 게임 스케일(Scale) 좌표계로 변환 (역산)
         let cropVirtualY = Math.abs(topPos) / scale;
-        // 실제 화면에서 물리적으로 상단 5px 띄우기 위한 좌표 추가 계산
-        let safeTop = cropVirtualY + (5 / scale);
+        let safeTop = cropVirtualY + (5 / scale); 
         
-        // 닫기버튼과 UI가 기본위치(16, 75)를 유지하면서, 잘려나갈 경우 safeTop으로 방어되도록 Math.max 적용
-        // 기존 닫기(16)와 헤더(75)의 간격인 59px은 그대로 유지함
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
 }
 
-// 창 크기 변경 시 계산식 재호출
 window.addEventListener('resize', resizeGame);
-// 로드 시 즉각 실행
 resizeGame();
-// ===========================================
 
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
@@ -270,9 +352,6 @@ const FPS = 60;
 const fpsInterval = 1000 / FPS;
 let accumulator = 0;
 
-// ==========================================
-// 인트로 및 메인 Rive 설정
-// ==========================================
 let mainRive;
 
 let introRive = new rive.Rive({
@@ -308,9 +387,11 @@ function skipIntro() {
         }
     }, 300);
 }
-// ==========================================
 
 function startGame() {
+    // 오디오 컨텍스트 초기화 (사용자 상호작용 시 필수)
+    initAudio();
+
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
@@ -520,7 +601,9 @@ function update(currentTime) {
                     if (p.mouseWaitTimer > 0) p.mouseWaitTimer--;
                     else { if(!p.mouseHit) { p.mouseX += p.mouseDir * p.mouseSpeed; if (p.mouseX <= 0 || p.mouseX + 72 >= p.w) { p.mouseDir *= -1; p.mouseWaitTimer = 30; } } }
                     let mx = p.x + p.mouseX, my = p.y - 35;
+                    // ★ 장애물 충돌 소리 재생 ★
                     if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
+                        playSfxHit();
                         velocityY = -15; posX += (posX > (mx - p.x) ? 100 : -100); p.mouseHit = true; p.mouseHitTimer = 15; p.mouseStunTimer = 60; 
                     }
                 } else { p.mouseVY += 0.6; p.mouseYOffset += p.mouseVY; }
@@ -532,12 +615,20 @@ function update(currentTime) {
                     let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                     if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                         p.itemCollected = true;
-                        if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
-                        else if (p.item === 'gold') { isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
+                        // ★ 아이템 획득 소리 재생 ★
+                        if (p.item === 'clover') { 
+                            playSfxClover();
+                            cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); 
+                        } 
+                        else if (p.item === 'gold') { 
+                            playSfxSuperJump();
+                            isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); 
+                        }
                     }
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
-                    
+                    // ★ 점프 소리 재생 ★
+                    playSfxJump();
                     loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
                     if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
