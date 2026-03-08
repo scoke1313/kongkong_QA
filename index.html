@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 최종 디테일 교정판</title>
+    <title>콩콩춘식 - 거리 축소 & 디테일 최종 교정판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -89,25 +89,25 @@
         }
         #final-event-page::-webkit-scrollbar { display: none; }
 
-        /* ★ 상단 영역 화이트 배경 래퍼 (하단 20px 추가 여백 적용) */
+        /* 상단 영역 화이트 배경 래퍼 */
         .f-top-bg-white {
             background-color: #FFFFFF;
             width: 100%;
-            padding-bottom: 21px; /* 기존 1px 겹침방지 + 20px 여백 추가 */
+            padding-bottom: 21px; 
         }
 
-        /* 상단바 교정: 6px 상단 여백 추가 (padding-top 20->26px) */
+        /* 상단바 */
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀 영역 교정: 숫자와 문자 굵기 완벽 통일 (currentColor stroke 적용) */
-        .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
+        /* 타이틀 영역 교정: 하단 여백 30->20 (금리박스 이하 10px 상단 이동) */
+        .f-header { text-align: center; margin-top: 70px; margin-bottom: 20px; padding: 0 24px; box-sizing: border-box;}
         .f-main-title { 
             font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; 
-            -webkit-text-stroke: 0.5px currentColor; /* 색상에 맞춘 동일한 외곽선 굵기 적용 */
+            -webkit-text-stroke: 0.5px currentColor; 
         } 
-        .f-highlight { color: #E2786F; } 
+        .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
         
         /* 금리 요약 박스 */
         .f-rate-box { 
@@ -129,14 +129,25 @@
             width: 393px; height: 0; z-index: 2;
         }
 
-        /* 춘식이 (선 위에 딱 붙음) */
+        /* 춘식이 */
         .f-graph-char { 
             position: absolute; 
             width: 84px; height: 136px; 
             left: 50%; margin-left: -42px; 
-            bottom: 1px; 
+            bottom: 1px; /* 선 바로 위에 착지 */
             image-rendering: -webkit-optimize-contrast; 
             image-rendering: crisp-edges;
+        }
+
+        /* ★ 먼지 이펙트 (춘식이 바로 하단에 부착) ★ */
+        .f-graph-dust {
+            position: absolute;
+            width: 82px; height: 100px;
+            left: 50%; margin-left: -41px; /* 82의 절반 (중앙정렬) */
+            top: -1px; /* 춘식이가 끝나는 지점(bottom 1px)과 정확히 맞물림 */
+            image-rendering: -webkit-optimize-contrast; 
+            image-rendering: crisp-edges;
+            z-index: -1; /* 춘식이와 캡슐선보다 뒤에 배치 */
         }
 
         /* 선 & 캡슐 요소 그룹 */
@@ -148,14 +159,13 @@
             pointer-events: none;
         }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
-        /* 캡슐 교정: 1px 우측 이동을 위해 padding-left 1px 적용 */
         .f-graph-badge { 
             width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; 
             font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center;
             font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box;
         }
 
-        /* 프로모션 섹션 1 교정: margin-top 20px으로 변경 (컨텐츠 전체 10px 추가 하단 이동) */
+        /* 프로모션 섹션 1 */
         .f-promo-section { text-align: center; margin-top: 20px; margin-bottom: 46px; } 
         .f-tag { 
             display: inline-flex; align-items: center; justify-content: center;
@@ -170,12 +180,14 @@
         .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
-        /* 공유 섹션 (배경 투명으로 처리하여 부모 #FFF9F2 노출) */
+        /* 공유 섹션 */
         .f-share-container { background-color: transparent; padding: 70px 24px 60px; text-align: center; } 
         .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 32px; } 
         .f-share-clover { color: #31B087; } 
         .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} 
-        .f-share-img { width: 188px; height: auto; display: block; margin: 0 auto 30px; } 
+        
+        /* 공유 이미지 교정: 정확히 200x206 지정 */
+        .f-share-img { width: 200px; height: 206px; display: block; margin: 0 auto 30px; object-fit: contain; } 
         
         /* 공유 버튼 */
         .f-share-btn { 
@@ -262,6 +274,8 @@
                 
                 <div id="graph-dynamic-wrapper">
                     <img src="img_result_kongsik.png" class="f-graph-char" alt="kongsik">
+                    
+                    <img src="img_result_dust.png" class="f-graph-dust" alt="dust effect">
 
                     <div class="f-graph-element-group">
                         <div class="f-graph-line"></div>
@@ -285,7 +299,9 @@
                 </div>
                 <img src="img_result2.png" class="f-promo-img-2" alt="calendar">
             </div>
-        </div> <div class="f-share-container">
+        </div>
+        
+        <div class="f-share-container">
             <div class="f-share-title">친구에게<br><span class="f-share-clover">클로버</span> 선물하기</div>
             <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
             <img src="img_result3.png" class="f-share-img" alt="clover letter">
@@ -453,7 +469,7 @@ const preloadImages = [
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
     'item_clover.png', 'item_gold.png', 'wood_1.png', 'wood_2.png', 'wood_3.png',
     'block_1.png', 'block_2.png', 'block_3.png', 'pogo_s.png',
-    'controller_Default.png', 'controller_pressed.png'
+    'controller_Default.png', 'controller_pressed.png', 'img_result_dust.png'
 ];
 preloadImages.forEach(src => { 
     const img = new Image(); 
@@ -628,8 +644,11 @@ function showResult() {
     resetInputState();
     playSfxGameOver();
 
-    const finalDist = Math.floor(score * 0.01);
-    earnedRateGlobal = (score * 0.0001) + (cloverCount * 0.1);
+    // ★ 거리 표기 20% (1/5) 축소 적용
+    const finalDist = Math.floor(score * 0.002);
+    
+    // ★ 획득 금리 계산 역시 축소된 거리에 맞춰 비례 적용
+    earnedRateGlobal = (finalDist * 0.01) + (cloverCount * 0.1);
     totalRateGlobal = BASE_RATE + earnedRateGlobal;
 
     document.getElementById('res-distance').innerText = `${finalDist}m`;
@@ -646,29 +665,23 @@ function showFinalEventPage() {
     document.getElementById('result-screen').style.display = 'none';
     document.getElementById('result-screen').classList.remove('show');
     
-    // 데이터 바인딩
     document.getElementById('f-total-rate-text').innerText = totalRateGlobal.toFixed(2) + '%';
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
     document.getElementById('f-badge-rate').innerText = totalRateGlobal.toFixed(2) + '%';
 
-    // 단리 이자 계산
     const monthlyDeposit = 300000;
     const months = 12;
     const interest = Math.floor(monthlyDeposit * (months * (months + 1) / 2) * (totalRateGlobal / 100) / 12);
     document.getElementById('f-interest-amount').innerText = interest.toLocaleString();
 
     // ★★★ 그래프 포지셔닝 수학적 계산 ★★★
-    const maxRate = 7.0; // 그래프 최상단 7%
-    const dataAreaHeight = 247; // 0% ~ 7% 까지의 픽셀 높이
-    const baseBottomOffset = 6; // 0% 라인이 시작되는 바닥으로부터의 높이(px)
+    const maxRate = 7.0; 
+    const dataAreaHeight = 247; 
+    const baseBottomOffset = 6; 
     
-    // 금리 비율 (최대 7% 제한)
     let rateRatio = Math.min(totalRateGlobal, maxRate) / maxRate;
-    
-    // 최종 높이값 계산 (부모 div 바닥 기준)
     let finalBottomPx = baseBottomOffset + (dataAreaHeight * rateRatio);
     
-    // 래퍼 요소에 적용하여 춘식이, 캡슐 라인을 한번에 정확한 위치로 이동
     const dynamicWrapper = document.getElementById('graph-dynamic-wrapper');
     dynamicWrapper.style.bottom = finalBottomPx + 'px';
 
@@ -721,6 +734,7 @@ function createPlatformData(yPos) {
 
 function initPlatforms() {
     score = 0; cloverCount = 0; currentY = 0; velocityY = 0; posX = 0; woodParticles = []; bgScrollY = 0; maxReachY = 0;
+    // 인게임 거리 표기도 축소 비율에 맞춰 수정
     document.getElementById('score-board').innerText = "0m"; document.getElementById('rate-board').innerText = "0";
     document.getElementById('game-stage').style.backgroundPositionY = '0px'; platforms = [];
     
@@ -756,7 +770,12 @@ function update(currentTime) {
         currentY += velocityY; mouseAnimFrame = (mouseAnimFrame + 1) % 20;
         
         let currentTotalY = -currentY + bgScrollY;
-        if (currentTotalY > maxReachY) { maxReachY = currentTotalY; score = maxReachY; document.getElementById('score-board').innerText = Math.floor(score * 0.01) + "m"; }
+        if (currentTotalY > maxReachY) { 
+            maxReachY = currentTotalY; 
+            score = maxReachY; 
+            // 0.002 배수로 축소하여 인게임 UI 스코어보드 업데이트
+            document.getElementById('score-board').innerText = Math.floor(score * 0.002) + "m"; 
+        }
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
         
         woodParticles.forEach(p => p.update()); woodParticles = woodParticles.filter(p => p.life > 0);
