@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 결과</title>
+    <title>콩콩춘식 - 최종 디테일 교정판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -51,7 +51,6 @@
         .res-total-value { display: flex; align-items: baseline; justify-content: center; color: #333; margin: 20px 0 10px; font-family: 'Poetsen One', sans-serif; letter-spacing: -1px; }
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
-        /* 팝업 버튼 수정: 명시된 width(132, 206) 적용 */
         .result-buttons { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 10px; width: 348px; box-sizing: border-box; }
         .btn-res { height: 60px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; flex: none; }
         #btn-retry { width: 132px; background: #222222; color: #FFF; }
@@ -81,35 +80,34 @@
         /* ==========================================
            ★ 최종 이벤트 결과 상세 페이지 
            ========================================== */
-        /* 전체 배경을 #FFF9F2 로 깔아서 바닥에서 흰색 안 보이게 처리 */
         #final-event-page {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #FFF9F2; z-index: 4000; display: none;
             overflow-y: auto; overflow-x: hidden; 
-            padding-bottom: 100px; /* 불필요한 하단 160px 여백 제거하고 고정버튼용 최소여백만 남김 */
+            padding-bottom: 100px; 
             box-sizing: border-box;
         }
         #final-event-page::-webkit-scrollbar { display: none; }
 
-        /* 상단 영역 (헤더~프로모션2)을 흰색 배경으로 분리 적용 */
+        /* ★ 상단 영역 화이트 배경 래퍼 (하단 20px 추가 여백 적용) */
         .f-top-bg-white {
             background-color: #FFFFFF;
             width: 100%;
-            padding-bottom: 1px; /* 겹침 방지 여백 */
+            padding-bottom: 21px; /* 기존 1px 겹침방지 + 20px 여백 추가 */
         }
 
-        /* 상단바 */
-        .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 20px 0; font-size: 17px; font-weight: 700; color: #222; }
-        .f-close-btn { position: absolute; left: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .f-sns-btn { position: absolute; right: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        /* 상단바 교정: 6px 상단 여백 추가 (padding-top 20->26px) */
+        .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
+        .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀 영역 교정: 10px 하단 이동(margin 60->70), 폰트 굵기 최대화(text-stroke 추가), 간격 2px 축소(line-height) */
+        /* 타이틀 영역 교정: 숫자와 문자 굵기 완벽 통일 (currentColor stroke 적용) */
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
         .f-main-title { 
             font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; 
-            -webkit-text-stroke: 0.5px #222; /* 굵기 한 단계 더 강화 */
+            -webkit-text-stroke: 0.5px currentColor; /* 색상에 맞춘 동일한 외곽선 굵기 적용 */
         } 
-        .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px #E2786F; } 
+        .f-highlight { color: #E2786F; } 
         
         /* 금리 요약 박스 */
         .f-rate-box { 
@@ -131,12 +129,12 @@
             width: 393px; height: 0; z-index: 2;
         }
 
-        /* 춘식이 교정: 17px 상단 이동 (기존 bottom: -16px -> bottom: 1px) 선명도 강제 적용 */
+        /* 춘식이 (선 위에 딱 붙음) */
         .f-graph-char { 
             position: absolute; 
             width: 84px; height: 136px; 
             left: 50%; margin-left: -42px; 
-            bottom: 1px; /* 선 바로 위에 착지하도록 17px 끌어올림 */
+            bottom: 1px; 
             image-rendering: -webkit-optimize-contrast; 
             image-rendering: crisp-edges;
         }
@@ -150,22 +148,21 @@
             pointer-events: none;
         }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
-        /* 캡슐 숫자 1px 감소 (19->18) */
+        /* 캡슐 교정: 1px 우측 이동을 위해 padding-left 1px 적용 */
         .f-graph-badge { 
             width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; 
             font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center;
-            font-family: inherit; margin-left: -1px; 
+            font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box;
         }
 
-        /* 프로모션 섹션 1 교정: 컨텐츠 전체 10px 하단 이동 (margin-top 10px 추가) */
-        .f-promo-section { text-align: center; margin-top: 10px; margin-bottom: 46px; } 
+        /* 프로모션 섹션 1 교정: margin-top 20px으로 변경 (컨텐츠 전체 10px 추가 하단 이동) */
+        .f-promo-section { text-align: center; margin-top: 20px; margin-bottom: 46px; } 
         .f-tag { 
             display: inline-flex; align-items: center; justify-content: center;
             width: 136px; height: 37px; background: #4A3E35; color: #FFF; 
             font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box;
         } 
-        /* 텍스트 사이즈 1px 감소 (17->16) */
-        .f-promo-section .f-desc { font-size: 16px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
+        .f-desc { font-size: 16px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
         .f-promo-img { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
         /* 프로모션 섹션 2 */
@@ -173,25 +170,25 @@
         .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
-        /* 공유 섹션 교정: 10px 하단 이동 (padding-top 60->70), 배경색 투명화(전체 배경 #FFF9F2가 비침) */
+        /* 공유 섹션 (배경 투명으로 처리하여 부모 #FFF9F2 노출) */
         .f-share-container { background-color: transparent; padding: 70px 24px 60px; text-align: center; } 
         .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 32px; } 
         .f-share-clover { color: #31B087; } 
         .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} 
         .f-share-img { width: 188px; height: auto; display: block; margin: 0 auto 30px; } 
         
-        /* 공유 버튼 교정: 통채로 좌측 7px 이동 */
+        /* 공유 버튼 */
         .f-share-btn { 
             background: #555555; color: #FFF; width: 219px; height: 64px; border: none; 
             border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; 
         } 
         .f-share-btn-inner {
             display: flex; align-items: center; justify-content: center;
-            transform: translateX(-7px); /* 전체 7px 좌측 이동 */
+            transform: translateX(-7px); 
             gap: 0;
         }
 
-        /* 하단 고정 버튼 (그라데이션 색상을 #FFF9F2 톤으로 변경하여 자연스럽게 녹아들게 함) */
+        /* 하단 고정 버튼 */
         .f-bottom-fixed { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 393px; background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); padding: 20px 24px 30px; box-sizing: border-box; z-index: 4100; }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
