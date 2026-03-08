@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 조작감패치</title>
+    <title>콩콩춘식 - 난이도패치</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -447,17 +447,15 @@ function skipIntro() {
 // ==========================================
 // ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘 ★
 // ==========================================
-let touchOrder = []; // 눌린 방향을 순서대로 저장하는 배열
+let touchOrder = []; 
 let activeTouches = { left: false, right: false };
 let kbdState = { left: false, right: false };
 let mouseState = { left: false, right: false };
 
 function syncInput() {
-    // 키보드, 마우스, 그리고 "가장 마지막에 눌린 터치" 중 하나라도 true면 해당 방향으로 이동
     keys['ArrowLeft'] = kbdState.left || activeTouches.left || mouseState.left;
     keys['ArrowRight'] = kbdState.right || activeTouches.right || mouseState.right;
 
-    // UI 버튼 눌림 효과 업데이트
     if (keys['ArrowLeft']) document.getElementById('btn-left').classList.add('ctrl-pressed');
     else document.getElementById('btn-left').classList.remove('ctrl-pressed');
 
@@ -481,21 +479,17 @@ function handleTouchChange(e) {
     let currentLeft = false;
     let currentRight = false;
 
-    // 현재 화면에 닿아있는 모든 손가락의 위치를 파악
     for (let i = 0; i < e.touches.length; i++) {
         if (e.touches[i].clientX - rect.left < mid) currentLeft = true;
         else currentRight = true;
     }
 
-    // 떼어진 손가락은 배열에서 제거
     if (!currentLeft) touchOrder = touchOrder.filter(d => d !== 'left');
     if (!currentRight) touchOrder = touchOrder.filter(d => d !== 'right');
 
-    // 새로 눌린 손가락은 배열 맨 끝(최신)에 추가
     if (currentLeft && !touchOrder.includes('left')) touchOrder.push('left');
     if (currentRight && !touchOrder.includes('right')) touchOrder.push('right');
 
-    // 오직 배열의 가장 마지막(최신) 방향만 true로 설정!
     activeTouches.left = false;
     activeTouches.right = false;
     if (touchOrder.length > 0) {
@@ -511,7 +505,6 @@ touchZone.addEventListener('touchmove', handleTouchChange, {passive: false});
 touchZone.addEventListener('touchend', handleTouchChange, {passive: false});
 touchZone.addEventListener('touchcancel', handleTouchChange, {passive: false});
 
-// PC 테스트용 마우스/키보드 이벤트 
 let isMouseDown = false;
 function handleMouse(e, isDown) {
     if (!isDown) {
@@ -706,7 +699,6 @@ function update(currentTime) {
 
     while (accumulator >= fpsInterval) {
         
-        // Touch 입력값에 따라 물리 적용
         if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
         if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
         
@@ -790,7 +782,20 @@ function update(currentTime) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
             
             document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; 
-            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (90 + Math.random() * 60))); p.isBroken = false; } });
+            
+            // ★ 200m 이상일 때 난이도 상승 (발판 세로 간격 점진적 증가) ★
+            let distM = Math.floor(score * 0.01);
+            let extraGap = distM >= 200 ? Math.min((distM - 200) * 0.5, 80) : 0;
+
+            platforms.forEach(p => { 
+                p.y += diff; p.baseY += diff; 
+                if (p.y > 852 && p.baseY > 852) { 
+                    let topY = Math.min(...platforms.map(pl => pl.y)); 
+                    let newGap = 90 + extraGap + Math.random() * 60;
+                    Object.assign(p, createPlatformData(topY - newGap)); 
+                    p.isBroken = false; 
+                } 
+            });
             woodParticles.forEach(p => p.y += diff);
         }
         
