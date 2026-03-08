@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 디테일패치</title>
+    <title>콩콩춘식 - 밸런스패치</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -202,7 +202,7 @@
 
 <script>
 // ==========================================
-// ★ Web Audio API 기반 인공 효과음(SFX) 생성 ★
+// ★ Web Audio API (사운드 제어) ★
 // ==========================================
 let audioCtx;
 
@@ -215,24 +215,29 @@ function initAudio() {
     }
 }
 
+// 1. 뾰잉뾰잉 쫀득한 점프 소리 
 function playSfxJump() {
     if (!audioCtx) return;
+    const t = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(250, t);
+    // 곡선을 그리며 급격하게 올라가는 주파수가 '뾰잉' 하는 쫀득함을 만듭니다.
+    osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
     
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.06, t + 0.02); // 찰지게 어택
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
     
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
+    osc.start(t);
+    osc.stop(t + 0.15);
 }
 
+// 2. 클로버 획득 소리 (띠링!)
 function playSfxClover() {
     if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
@@ -251,7 +256,7 @@ function playSfxClover() {
     osc.stop(audioCtx.currentTime + 0.15);
 }
 
-// ★ 고구마 획득: 시원하고 적당한 슈우웅 소리로 롤백 및 다듬기 ★
+// 3. 고구마 획득 (시원하고 부드러운 슈우웅~ 소리로 롤백/개선)
 function playSfxSuperJump() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
@@ -260,18 +265,19 @@ function playSfxSuperJump() {
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
-    osc.type = 'sine';
+    osc.type = 'sine'; // 사각파 대신 부드러운 사인파 사용
     osc.frequency.setValueAtTime(400, t);
     osc.frequency.exponentialRampToValueAtTime(1500, t + 0.4);
     
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.1, t + 0.05);
+    gain.gain.linearRampToValueAtTime(0.1, t + 0.05); // 볼륨 부드럽게
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
     
     osc.start(t);
     osc.stop(t + 0.5);
 }
 
+// 4. 장애물(쥐돌이) 충돌 소리 (찌직!)
 function playSfxHit() {
     if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
@@ -529,18 +535,43 @@ function createPlatformData(yPos) {
     const width = SIZES[sizeIdx];
     let isBreakable = (rand < 0.15 + (Math.min(distM, 500) / 500) * 0.75);
     let moveType = rand < Math.min(0.5, 0.1 + (0.4 * (distM / 500))) ? (distM < 150 ? 'h' : (Math.random() > 0.5 ? 'h' : 'v')) : 'normal';
-    let canHaveMouse = (width >= 98) && (rand < 0.2); 
-    let itemType = (!canHaveMouse && rand > 0.8) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
     
-    // ★ 랜덤 이동 속도 부여 (1.0 ~ 2.5 사이) & 시작 방향 랜덤 ★
+    // ★ 난이도 스케일링: 거리가 멀어질수록 속도 최대 2.5배까지 증가 ★
+    let speedMulti = distM >= 200 ? Math.min(1.0 + (distM - 200) / 400, 2.5) : 1.0;
     let moveDir = Math.random() > 0.5 ? 1 : -1;
-    let speedVar = (1.0 + Math.random() * 1.5) * moveDir;
+    let speedVar = (1.0 + Math.random() * 1.5) * moveDir * speedMulti;
+
+    // ★ 쥐돌이(장애물) 생성 및 다중 배치 로직 ★
+    let mice = [];
+    let mouseProb = distM >= 200 ? 0.35 : 0.2; // 200m 이상일 때 등장 확률 증가
+    let canHaveMouse = (width >= 98) && (rand < mouseProb); 
+    let itemType = (!canHaveMouse && rand > 0.8) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
+
+    if (canHaveMouse) {
+        mice.push({
+            x: Math.random() * (width - 72),
+            dir: Math.random() > 0.5 ? 1 : -1,
+            speed: (0.7 + Math.random() * 0.6) * speedMulti,
+            waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0
+        });
+
+        // 200m 이상이고 가장 넓은 발판(138px)이면 50% 확률로 쥐돌이 2마리 등장!
+        if (distM >= 200 && width >= 138 && Math.random() > 0.5) {
+            // 첫 번째 쥐는 좌측, 두 번째 쥐는 우측에 배치
+            mice[0].x = Math.random() * 20; 
+            mice.push({
+                x: width - 72 - Math.random() * 20,
+                dir: Math.random() > 0.5 ? 1 : -1,
+                speed: (0.7 + Math.random() * 0.6) * speedMulti,
+                waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0
+            });
+        }
+    }
 
     return { 
         x: Math.random() * (393 - width), y: yPos, baseY: yPos, w: width, h: 22, 
         img: PLATFORM_TYPES[isBreakable?'wood':'block'][sizeIdx], 
-        isBreakable, hasMouse: canHaveMouse, mouseX: Math.random() * (width - 72), mouseDir: 1, mouseSpeed: 0.7 + Math.random() * 0.6, mouseWaitTimer: 0, mouseYOffset: -52, mouseVY: 0,
-        mouseHit: false, mouseHitTimer: 0, mouseStunTimer: 0, 
+        isBreakable, mice: mice, 
         item: itemType, itemCollected: false, type: moveType, speed: speedVar, verticalRange: 40 + Math.random() * 40, vPhase: Math.random() * Math.PI * 2, isBroken: false 
     };
 }
@@ -553,7 +584,7 @@ function initPlatforms() {
     platforms = [];
     
     let lastY = 752; 
-    // ★ 발판 20% 더 많이 나오게 간격 축소 (120->90, 80->60) 및 초기 생성 개수 증가 (7->9) ★
+    // ★ 발판 갯수 20% 증가: 생성 간격 축소 및 초기 개수 증가 ★
     for (let i = 0; i < 9; i++) { lastY -= (90 + Math.random() * 60); platforms.push(createPlatformData(lastY)); }
     platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
     loadRive('kongsik_ingame_air.riv');
@@ -600,31 +631,41 @@ function update(currentTime) {
         const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; 
         
         platforms.forEach(p => {
-            if (p.hasMouse) {
-                if (p.mouseHitTimer > 0) p.mouseHitTimer--; 
-                if (p.mouseStunTimer > 0) { p.mouseStunTimer--; if (p.mouseStunTimer <= 0) p.mouseHit = false; }
+            // ★ 배열로 바뀐 쥐돌이 객체들 순회 (1마리 또는 2마리) ★
+            p.mice.forEach(m => {
+                if (m.hitTimer > 0) m.hitTimer--; 
+                if (m.stunTimer > 0) { m.stunTimer--; if (m.stunTimer <= 0) m.hit = false; }
+                
                 if (!p.isBroken) {
-                    if (p.mouseWaitTimer > 0) p.mouseWaitTimer--;
-                    else { if(!p.mouseHit) { p.mouseX += p.mouseDir * p.mouseSpeed; if (p.mouseX <= 0 || p.mouseX + 72 >= p.w) { p.mouseDir *= -1; p.mouseWaitTimer = 30; } } }
-                    let mx = p.x + p.mouseX, my = p.y - 35;
+                    if (m.waitTimer > 0) m.waitTimer--;
+                    else { 
+                        if(!m.hit) { 
+                            m.x += m.dir * m.speed; 
+                            if (m.x <= 0 || m.x + 72 >= p.w) { m.dir *= -1; m.waitTimer = 30; } 
+                        } 
+                    }
+                    let mx = p.x + m.x, my = p.y - 35;
                     
                     if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
                         playSfxHit();
                         velocityY = -15; 
                         
-                        // ★ 세밀한 넉백 처리: 플레이어 중심과 쥐돌이 중심(mx + 36) 비교 ★
-                        let playerCenterX = charLeft + 25;
-                        let ratCenterX = mx + 36;
+                        // ★ 넉백 정밀 계산: 플레이어와 쥐돌이의 X축 중심점을 비교하여 방향 결정 ★
+                        let playerCenterX = charLeft + 25; // 춘식이 스프라이트의 대략적 중심
+                        let ratCenterX = mx + 36;          // 쥐돌이 스프라이트의 대략적 중심
                         if (playerCenterX < ratCenterX) {
-                            posX -= 100; // 쥐돌이 왼쪽 밟으면 왼쪽으로 튕김
+                            posX -= 100; // 쥐돌이의 왼쪽을 밟았으므로 왼쪽으로 튕김
                         } else {
-                            posX += 100; // 쥐돌이 오른쪽 밟으면 오른쪽으로 튕김
+                            posX += 100; // 쥐돌이의 오른쪽을 밟았으므로 오른쪽으로 튕김
                         }
                         
-                        p.mouseHit = true; p.mouseHitTimer = 15; p.mouseStunTimer = 60; 
+                        m.hit = true; m.hitTimer = 15; m.stunTimer = 60; 
                     }
-                } else { p.mouseVY += 0.6; p.mouseYOffset += p.mouseVY; }
-            }
+                } else { 
+                    m.vy += 0.6; m.yOffset += m.vy; 
+                }
+            });
+
             if (!p.isBroken) {
                 if (p.type === 'h') { p.x += p.speed; if (p.x <= 0 || p.x + p.w >= 393) p.speed *= -1; } 
                 else if (p.type === 'v') { p.vPhase += 0.03; p.y = p.baseY + Math.sin(p.vPhase) * p.verticalRange; }
@@ -655,7 +696,7 @@ function update(currentTime) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
             
             document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; 
-            // ★ 무한 스크롤 시에도 새로운 간격(90+60) 적용 ★
+            // 무한 스크롤 생성 시에도 좁아진 간격 유지
             platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (90 + Math.random() * 60))); p.isBroken = false; } });
             woodParticles.forEach(p => p.y += diff);
         }
@@ -678,18 +719,19 @@ function update(currentTime) {
                 const d = document.createElement('div'); d.className = 'platform'; d.style.cssText = `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:22px;background-image:url('${p.img}');`; stage.appendChild(d);
                 if (p.item && !p.itemCollected) { const itemDiv = document.createElement('div'); itemDiv.className = 'game-item'; itemDiv.style.cssText = `left:${p.x + p.w/2 - 25}px; top:${p.y - 55}px; background-image:url('item_${p.item}.png');`; stage.appendChild(itemDiv); }
             }
-            if (p.hasMouse) {
-                if (p.mouseHit && p.mouseHitTimer > 0) {
+            // ★ 배열로 바뀐 쥐돌이 객체들 렌더링 ★
+            p.mice.forEach(m => {
+                if (m.hit && m.hitTimer > 0) {
                     const eff = document.createElement('div'); eff.className = 'damage-effect';
-                    let effImg = p.mouseHitTimer > 10 ? 'effect_damage1.png' : (p.mouseHitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
-                    eff.style.left = (p.x + p.mouseX + 6) + 'px'; eff.style.top = (p.y + p.mouseYOffset - 10) + 'px'; eff.style.backgroundImage = `url('${effImg}')`;
+                    let effImg = m.hitTimer > 10 ? 'effect_damage1.png' : (m.hitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
+                    eff.style.left = (p.x + m.x + 6) + 'px'; eff.style.top = (p.y + m.yOffset - 10) + 'px'; eff.style.backgroundImage = `url('${effImg}')`;
                     stage.appendChild(eff);
                 }
-                const m = document.createElement('div'); m.className = 'mouse-enemy'; 
-                let mouseImg = p.mouseHit ? 'mouse3.png' : (p.mouseWaitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
-                m.style.cssText = `left:${p.x + p.mouseX}px; top:${p.y + p.mouseYOffset}px; background-image:url('${mouseImg}'); transform:scaleX(${p.mouseDir});`; 
-                stage.appendChild(m); 
-            }
+                const el = document.createElement('div'); el.className = 'mouse-enemy'; 
+                let mouseImg = m.hit ? 'mouse3.png' : (m.waitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
+                el.style.cssText = `left:${p.x + m.x}px; top:${p.y + m.yOffset}px; background-image:url('${mouseImg}'); transform:scaleX(${m.dir});`; 
+                stage.appendChild(el); 
+            });
         });
     }
 }
