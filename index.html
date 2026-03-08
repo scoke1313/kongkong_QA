@@ -39,6 +39,13 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.5); 
         }
 
+        /* --- 인트로 화면 --- */
+        #intro-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #FFFDF5; z-index: 2500; cursor: pointer;
+        }
+        #intro-canvas { width: 100%; height: 100%; pointer-events: none; }
+
         /* --- 메인 화면 --- */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
         
@@ -135,7 +142,11 @@
 <body>
 
 <div id="game-stage">
-    <div id="main-screen">
+    <div id="intro-screen" onclick="skipIntro()" ontouchstart="skipIntro()">
+        <canvas id="intro-canvas"></canvas>
+    </div>
+
+    <div id="main-screen" style="display: none;">
         <div id="main-rive-container"><canvas id="main-canvas"></canvas></div>
         <button id="start-button" onclick="startGame()"></button>
     </div>
@@ -201,13 +212,40 @@ const FPS = 60;
 const fpsInterval = 1000 / FPS;
 let accumulator = 0;
 
-const mainRive = new rive.Rive({
-    src: 'kongsik.riv',
-    canvas: document.getElementById('main-canvas'),
+// ==========================================
+// 인트로 및 메인 Rive 설정
+// ==========================================
+let mainRive;
+
+let introRive = new rive.Rive({
+    src: 'kongsik_intro.riv',
+    canvas: document.getElementById('intro-canvas'),
     autoplay: true,
-    stateMachines: 'State Machine 1',
-    onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
+    onLoad: () => introRive.resizeDrawingSurfaceToCanvas(),
+    onStop: () => skipIntro(), 
+    onLoop: () => skipIntro()  
 });
+
+function skipIntro() {
+    const introScreen = document.getElementById('intro-screen');
+    if (introScreen.style.display === 'none') return; 
+
+    introScreen.style.display = 'none';
+    document.getElementById('main-screen').style.display = 'block';
+    
+    if (introRive) {
+        introRive.cleanup();
+    }
+
+    mainRive = new rive.Rive({
+        src: 'kongsik.riv',
+        canvas: document.getElementById('main-canvas'),
+        autoplay: true,
+        stateMachines: 'State Machine 1',
+        onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
+    });
+}
+// ==========================================
 
 function startGame() {
     document.getElementById('main-screen').style.display = 'none';
