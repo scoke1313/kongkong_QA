@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단버튼 배경제거 완벽판 & 결과 리브 적용(위치 조정/속도 완화)</title>
+    <title>콩콩춘식 - 결과 리브 적용(착지+점프+숫자카운트)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -115,18 +115,18 @@
         .f-graph-area { text-align: center; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 65px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
-        /* ★ 모션 속도를 10에서 7로 늦춤 (0.8s -> 1.15s) */
+        /* ★ CSS Transition은 자바스크립트에서 단계별로 덮어씌울 것이므로 제거하여 충돌 방지 */
         #graph-dynamic-wrapper { 
             position: absolute; left: 50%; transform: translateX(-50%); width: 393px; 
-            bottom: 6px; z-index: 2; 
-            transition: bottom 1.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            bottom: 21px; /* 초기 세팅: 기준보다 15px 위에서 대기 */
+            z-index: 2; 
         }
 
-        /* ★ 리브 컨테이너 138px 하단 이동 (-137px 설정) */
+        /* ★ 리브 컨테이너 138px 하단 이동 (-137px 설정) + 400px 사이즈 고정 */
         .f-graph-char-rive { 
             position: absolute; 
             left: 50%; 
-            bottom: -137px; /* 기존 1px에서 138px 하단으로 이동 */
+            bottom: -137px; 
             transform: translateX(-50%); 
             z-index: 5; 
             width: 400px !important;  
@@ -244,8 +244,7 @@
 
                         <div class="f-graph-element-group">
                             <div class="f-graph-line"></div>
-                            <div class="f-graph-badge" id="f-badge-rate">3.85%</div>
-                        </div>
+                            <div class="f-graph-badge" id="f-badge-rate">0.00%</div> </div>
                     </div>
                 </div>
                 
@@ -659,13 +658,37 @@ function showResult() {
     setTimeout(() => screen.classList.add('show'), 10);
 }
 
+// 핑크캡슐 숫자 카운트업 함수
+function animateBadgeRate(element, start, end, duration) {
+    let startTimestamp = null;
+    // 부드러운 감속 함수 (easeOutCubic)
+    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        
+        const currentVal = start + (end - start) * easeOutCubic(progress);
+        element.innerText = currentVal.toFixed(2) + '%';
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            element.innerText = end.toFixed(2) + '%';
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
 function showFinalEventPage() {
     document.getElementById('result-screen').style.display = 'none';
     document.getElementById('result-screen').classList.remove('show');
     
     document.getElementById('f-total-rate-text').innerText = totalRateGlobal.toFixed(2) + '%';
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
-    document.getElementById('f-badge-rate').innerText = totalRateGlobal.toFixed(2) + '%';
+    // 뱃지 초기값 0% 설정
+    const badgeRate = document.getElementById('f-badge-rate');
+    badgeRate.innerText = '0.00%';
 
     const weeklyDeposit = 100000;
     const weeks = 26; 
@@ -681,8 +704,9 @@ function showFinalEventPage() {
     
     const dynamicWrapper = document.getElementById('graph-dynamic-wrapper');
     
-    // ★ 1. 처음엔 무조건 바닥(0%)에서 시작하게 설정
-    dynamicWrapper.style.bottom = baseBottomOffset + 'px';
+    // ★ 1. 처음엔 15px 위에서 대기하도록 CSS 즉각 적용
+    dynamicWrapper.style.transition = 'none';
+    dynamicWrapper.style.bottom = (baseBottomOffset + 15) + 'px';
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
@@ -703,10 +727,21 @@ function showFinalEventPage() {
         onLoad: () => {
             resultRive.resizeDrawingSurfaceToCanvas();
             
-            // ★ 3. 로드 완료 후 0.5초 뒤에 CSS Transition을 이용해 뾰오옹 올라감
+            // ★ 3. 로드 완료 후 애니메이션 시퀀스 (착지 후 뾰오옹 + 숫자 카운트)
             setTimeout(() => {
-                dynamicWrapper.style.bottom = finalBottomPx + 'px';
-            }, 500);
+                // [1단계] 아래로 빠르게 착지 (0.2초)
+                dynamicWrapper.style.transition = 'bottom 0.2s cubic-bezier(0.55, 0.085, 0.68, 0.53)'; 
+                dynamicWrapper.style.bottom = baseBottomOffset + 'px';
+                
+                // [2단계] 착지 후 살짝 눌렸다가 튀어오름 (1.15초) + 숫자 촤라락
+                setTimeout(() => {
+                    dynamicWrapper.style.transition = 'bottom 1.15s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    dynamicWrapper.style.bottom = finalBottomPx + 'px';
+                    
+                    // 춘식이 튀어오르는 시간(1.15초 = 1150ms)에 맞춰 숫자 카운트업 실행
+                    animateBadgeRate(badgeRate, 0, totalRateGlobal, 1150);
+                }, 250); // 착지하는 시간(200ms) + 눌리는 대기시간(50ms)
+            }, 100); // 렌더링 안정화를 위한 짧은 대기
         }
     });
 }
