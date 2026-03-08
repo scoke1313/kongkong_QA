@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 디테일 & 포지셔닝 완벽 교정판</title>
+    <title>콩콩춘식 - 디테일 교정 및 금리 포지셔닝 완벽 적용</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -51,7 +51,6 @@
         .res-total-value { display: flex; align-items: baseline; justify-content: center; color: #333; margin: 20px 0 10px; font-family: 'Poetsen One', sans-serif; letter-spacing: -1px; }
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
-        /* 팝업 버튼 수정: 가로 배열, 색상 변경 */
         .result-buttons { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 10px; width: 348px; box-sizing: border-box; }
         .btn-res { height: 60px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; flex: 1; }
 
@@ -82,7 +81,8 @@
         #final-event-page {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #FFFFFF; z-index: 4000; display: none;
-            overflow-y: auto; overflow-x: hidden;
+            overflow-y: auto; overflow-x: hidden; 
+            padding-bottom: 100px; /* 하단 고정 버튼을 가리지 않을 정도의 최소 여백만 남김 */
             box-sizing: border-box;
         }
         #final-event-page::-webkit-scrollbar { display: none; }
@@ -92,15 +92,14 @@
         .f-close-btn { position: absolute; left: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀 영역 */
+        /* 타이틀 영역 교정: 폰트 굵기 900, 행간 1.29로 축소하여 약 2px 간격 감소 */
         .f-header { text-align: center; margin-top: 60px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
-        .f-main-title { font-size: 34px; font-weight: 800; line-height: 1.35; color: #222; } 
-        /* 핑크 컬러 통합 변경 (#E2786F) */
+        .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.29; color: #222; } 
         .f-highlight { color: #E2786F; } 
         
         /* 금리 요약 박스 */
         .f-rate-box { 
-            width: 333px; height: 86px; margin: 0 auto 40px; /* 요약박스 하단마진 60->40 (그래프부터 20px 상단이동) */
+            width: 333px; height: 86px; margin: 0 auto 40px;
             background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; 
         }
         .f-rate-col { flex: 1; text-align: center; position: relative; }
@@ -112,27 +111,28 @@
         .f-graph-area { text-align: center; margin-bottom: 50px; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 50px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
-        /* ★ 금리 비례 포지셔닝 래퍼 (JS에서 제어됨) */
+        /* ★ 금리 비례 포지셔닝 래퍼 (정확한 수학적 비율로 JS 제어) */
         #graph-dynamic-wrapper {
             position: absolute; left: 50%; transform: translateX(-50%);
             width: 393px; height: 0; z-index: 2;
+            /* bottom 속성은 JS에서 실시간 주입 (하단에서부터의 높이) */
         }
 
-        /* 춘식이 정수 픽셀(Integer Pixel) 렌더링: 뿌옇게 나오는 현상 완벽 해결 */
+        /* 춘식이 교정: 16px 하단 이동(bottom: -16px), 정수 픽셀 렌더링으로 선명도 향상 */
         .f-graph-char { 
             position: absolute; 
             width: 84px; height: 136px; 
             left: 50%; margin-left: -42px; /* 중앙 정렬 (정수) */
-            top: 17px; margin-top: -136px; /* 선 위로 딱 붙기 (정수) */
-            image-rendering: -webkit-optimize-contrast; /* 선명도 강제 향상 */
+            bottom: -16px; /* 선에서 16px 밑으로 내려와 핑크라인과 발을 딱 맞춤 */
+            image-rendering: -webkit-optimize-contrast; 
             image-rendering: crisp-edges;
         }
 
         /* 선 & 캡슐 요소 그룹 (우측여백 36px 고정) */
         .f-graph-element-group { 
             position: absolute; 
-            left: 71px; width: 286px; /* 전체 393 - 좌측 71 - 우측 36 = 너비 286 고정 */
-            top: 17px; margin-top: -1px; /* 17px 하단 이동 및 선 중앙 정렬(정수) */
+            left: 71px; width: 286px; 
+            bottom: 0; transform: translateY(50%); /* 캡슐 중앙을 기준 0선에 맞춤 */
             display: flex; align-items: center; justify-content: flex-start;
             pointer-events: none;
         }
@@ -140,16 +140,16 @@
         .f-graph-badge { 
             width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; 
             font-size: 19px; font-weight: 800; display: flex; align-items: center; justify-content: center;
-            font-family: inherit; margin-left: -1px; /* 숫자 17->19px (2px 증가) */
+            font-family: inherit; margin-left: -1px; 
         }
 
-        /* 프로모션 섹션 1 */
-        .f-promo-section { text-align: center; margin-bottom: 46px; } /* 하단 컨텐츠 14px 상단 이동 */
+        /* 프로모션 섹션 1 교정: 태그 폰트 1px 축소 (15->14px) */
+        .f-promo-section { text-align: center; margin-bottom: 46px; } 
         .f-tag { 
             display: inline-flex; align-items: center; justify-content: center;
             width: 136px; height: 37px; background: #4A3E35; color: #FFF; 
-            font-size: 15px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box;
-        } /* 폰트 14->15px */
+            font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box;
+        } 
         .f-desc { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
         .f-promo-img { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
@@ -158,24 +158,22 @@
         .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
-        /* 공유 섹션 (배경 컬러 #FFF9F2 적용) */
+        /* 공유 섹션 */
         .f-share-container { background: #FFF9F2; padding: 60px 24px; text-align: center; } 
-        .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 32px; } /* 간격 22->32 (10px 증가) */
+        .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 32px; } 
         .f-share-clover { color: #31B087; } 
-        .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} /* 폰트 16->17px */
+        .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} 
         .f-share-img { width: 188px; height: auto; display: block; margin: 0 auto 30px; } 
         
-        /* 공유 버튼: 간격 제거를 위한 span 분리 */
+        /* 공유 버튼 교정: 내부 요소들 전체를 좌측 7px 이동 */
         .f-share-btn { 
             background: #555555; color: #FFF; width: 219px; height: 64px; border: none; 
-            border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 0; padding: 0;
+            border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; 
         } 
-        
-        /* ★ 하단 컬러 여백 영역 (#FFF9F2) ★ */
-        .f-color-bottom-padding {
-            background-color: #FFF9F2;
-            height: 120px; 
+        .f-share-btn-inner {
+            display: flex; align-items: center; justify-content: center;
+            transform: translateX(-7px); /* 전체 7px 좌측 밀기 */
+            gap: 0;
         }
 
         /* 하단 고정 버튼 */
@@ -280,13 +278,11 @@
             <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
             <img src="img_result3.png" class="f-share-img" alt="clover letter">
             <button class="f-share-btn">
-                <img src="icon_sns.png" style="width:44px; height:44px; filter: brightness(0) invert(1);" alt="share"><span style="margin:0; padding:0;">친구에게 알려주기</span>
+                <div class="f-share-btn-inner">
+                    <img src="icon_sns.png" style="width:44px; height:44px; filter: brightness(0) invert(1);" alt="share"><span style="margin:0; padding:0;">친구에게 알려주기</span>
+                </div>
             </button>
         </div>
-        
-        <div class="f-color-bottom-padding"></div>
-        
-        <div style="height: 120px; background-color: #FFF9F2;"></div> 
 
         <div class="f-bottom-fixed">
             <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
@@ -607,7 +603,7 @@ function resetGame() {
 }
 
 // ==========================================
-// ★ 게임 결과 처리 및 금리 비례 포지셔닝 로직
+// ★ 게임 결과 처리 및 금리 비례 정밀 포지셔닝 로직
 // ==========================================
 let earnedRateGlobal = 0;
 let totalRateGlobal = 0;
@@ -633,7 +629,7 @@ function showResult() {
     setTimeout(() => screen.classList.add('show'), 10);
 }
 
-// ★ 그래프 금리 비례 자동 포지셔닝 함수
+// ★ 수학적으로 완벽하게 계산된 그래프 위치 지정 로직
 function showFinalEventPage() {
     document.getElementById('result-screen').style.display = 'none';
     document.getElementById('result-screen').classList.remove('show');
@@ -643,37 +639,26 @@ function showFinalEventPage() {
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
     document.getElementById('f-badge-rate').innerText = totalRateGlobal.toFixed(2) + '%';
 
-    // 이자 계산 (단리 계산식)
+    // 단리 이자 계산
     const monthlyDeposit = 300000;
     const months = 12;
     const interest = Math.floor(monthlyDeposit * (months * (months + 1) / 2) * (totalRateGlobal / 100) / 12);
     document.getElementById('f-interest-amount').innerText = interest.toLocaleString();
 
-    // ★★★ 그래프 포지셔닝 계산 로직 ★★★
-    // 1. 그래프 총 높이: 294px, 데이터 영역(0-7%): 247px
-    const graphImgHeight = 294;
-    const dataAreaHeight = 247;
-    const maxRate = 7.0; 
+    // ★★★ 그래프 포지셔닝 수학적 계산 ★★★
+    const maxRate = 7.0; // 그래프 최상단 7%
+    const dataAreaHeight = 247; // 0% ~ 7% 까지의 픽셀 높이
+    const baseBottomOffset = 6; // 0% 라인이 시작되는 바닥으로부터의 높이(px)
     
-    // 2. 0% 라인의 픽셀 위치 (이미지 하단 기준 23.5px 패딩)
-    const bottomPadding = (graphImgHeight - dataAreaHeight) / 2;
-    
-    // 3. 현재 금리의 데이터 영역 내 비율 계산 (최대 7% 제한)
+    // 금리 비율 (최대 7% 제한)
     let rateRatio = Math.min(totalRateGlobal, maxRate) / maxRate;
     
-    // 4. 데이터 영역 내 실제 픽셀 높이 계산
-    let pixelHeightFromZero = dataAreaHeight * rateRatio;
+    // 최종 높이값 계산 (부모 div 바닥 기준)
+    let finalBottomPx = baseBottomOffset + (dataAreaHeight * rateRatio);
     
-    // 5. 이미지 하단 기준 최종 픽셀 위치
-    let finalPixelFromBottom = bottomPadding + pixelHeightFromZero;
-    
-    // 6. CSS top 값으로 변환 (이미지 상단 0px 기준)
-    let finalTopPx = graphImgHeight - finalPixelFromBottom;
-    
-    // 7. 래퍼 요소에 적용하여 춘식이, 캡슐 라인을 한번에 상하 이동시킴
+    // 래퍼 요소에 적용하여 춘식이, 캡슐 라인을 한번에 정확한 위치로 이동
     const dynamicWrapper = document.getElementById('graph-dynamic-wrapper');
-    dynamicWrapper.style.top = finalTopPx + 'px';
-
+    dynamicWrapper.style.bottom = finalBottomPx + 'px';
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
