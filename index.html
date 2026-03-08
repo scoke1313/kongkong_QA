@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 결과 리브 적용(착지+점프+숫자카운트)</title>
+    <title>콩콩춘식 - 최종 완벽판 (먼지효과 + 1.5초 점프)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -115,14 +115,13 @@
         .f-graph-area { text-align: center; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 65px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
-        /* ★ CSS Transition은 자바스크립트에서 단계별로 덮어씌울 것이므로 제거하여 충돌 방지 */
+        /* ★ CSS Transition은 스크립트에서 제어하므로 초기에는 속성 제거상태 */
         #graph-dynamic-wrapper { 
             position: absolute; left: 50%; transform: translateX(-50%); width: 393px; 
-            bottom: 21px; /* 초기 세팅: 기준보다 15px 위에서 대기 */
             z-index: 2; 
         }
 
-        /* ★ 리브 컨테이너 138px 하단 이동 (-137px 설정) + 400px 사이즈 고정 */
+        /* ★ 리브 컨테이너 위치 및 크기 (400x400, 138px 하단이동) */
         .f-graph-char-rive { 
             position: absolute; 
             left: 50%; 
@@ -133,7 +132,13 @@
             height: 400px !important; 
         }
         
-        .f-graph-dust { position: absolute; width: 82px; height: 100px; left: 50%; margin-left: -41px; top: -1px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; z-index: -1; }
+        /* ★ Dust 이미지: 처음엔 숨겨두고 이지인으로 나타나게 함 */
+        .f-graph-dust { 
+            position: absolute; width: 82px; height: 100px; left: 50%; margin-left: -41px; top: -1px; 
+            image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; z-index: -1;
+            opacity: 0; 
+            transition: opacity 0.5s ease-in; 
+        }
 
         .f-graph-element-group { position: absolute; left: 71px; width: 286px; bottom: 0; transform: translateY(50%); display: flex; align-items: center; justify-content: flex-start; pointer-events: none; }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
@@ -244,7 +249,8 @@
 
                         <div class="f-graph-element-group">
                             <div class="f-graph-line"></div>
-                            <div class="f-graph-badge" id="f-badge-rate">0.00%</div> </div>
+                            <div class="f-graph-badge" id="f-badge-rate">0.00%</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -388,7 +394,7 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 게임 영역에 종속되도록 결과페이지 계산 추가
+// ★ 화면 리사이징
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
@@ -438,7 +444,7 @@ if (window.visualViewport) { window.visualViewport.addEventListener('resize', re
 resizeGame();
 
 // ==========================================
-// ★ 캔버스 초고화질(DPR) 세팅 및 렌더링
+// ★ 캔버스 세팅 및 렌더링
 // ==========================================
 const dynCanvas = document.getElementById('dynamic-layer-canvas');
 const dynCtx = dynCanvas.getContext('2d');
@@ -658,10 +664,9 @@ function showResult() {
     setTimeout(() => screen.classList.add('show'), 10);
 }
 
-// 핑크캡슐 숫자 카운트업 함수
+// ★ 핑크캡슐 숫자 카운트업 함수
 function animateBadgeRate(element, start, end, duration) {
     let startTimestamp = null;
-    // 부드러운 감속 함수 (easeOutCubic)
     const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
 
     const step = (timestamp) => {
@@ -686,6 +691,7 @@ function showFinalEventPage() {
     
     document.getElementById('f-total-rate-text').innerText = totalRateGlobal.toFixed(2) + '%';
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
+    
     // 뱃지 초기값 0% 설정
     const badgeRate = document.getElementById('f-badge-rate');
     badgeRate.innerText = '0.00%';
@@ -703,10 +709,12 @@ function showFinalEventPage() {
     let finalBottomPx = baseBottomOffset + (dataAreaHeight * rateRatio);
     
     const dynamicWrapper = document.getElementById('graph-dynamic-wrapper');
+    const dustImg = document.querySelector('.f-graph-dust');
     
-    // ★ 1. 처음엔 15px 위에서 대기하도록 CSS 즉각 적용
+    // ★ 1. 처음엔 20px 위에서 대기 (15+5)
     dynamicWrapper.style.transition = 'none';
-    dynamicWrapper.style.bottom = (baseBottomOffset + 15) + 'px';
+    dynamicWrapper.style.bottom = (baseBottomOffset + 20) + 'px';
+    dustImg.style.opacity = '0'; // 먼지 숨김
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
@@ -727,19 +735,25 @@ function showFinalEventPage() {
         onLoad: () => {
             resultRive.resizeDrawingSurfaceToCanvas();
             
-            // ★ 3. 로드 완료 후 애니메이션 시퀀스 (착지 후 뾰오옹 + 숫자 카운트)
+            // ★ 3. 로드 완료 후 애니메이션 시퀀스 (착지 후 1.5초 뾰오옹 + 숫자 카운트 + 먼지 연출)
             setTimeout(() => {
                 // [1단계] 아래로 빠르게 착지 (0.2초)
                 dynamicWrapper.style.transition = 'bottom 0.2s cubic-bezier(0.55, 0.085, 0.68, 0.53)'; 
                 dynamicWrapper.style.bottom = baseBottomOffset + 'px';
                 
-                // [2단계] 착지 후 살짝 눌렸다가 튀어오름 (1.15초) + 숫자 촤라락
+                // [2단계] 착지 후 살짝 눌렸다가 튀어오름 (1.5초) + 숫자 촤라락
                 setTimeout(() => {
-                    dynamicWrapper.style.transition = 'bottom 1.15s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    dynamicWrapper.style.transition = 'bottom 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     dynamicWrapper.style.bottom = finalBottomPx + 'px';
                     
-                    // 춘식이 튀어오르는 시간(1.15초 = 1150ms)에 맞춰 숫자 카운트업 실행
-                    animateBadgeRate(badgeRate, 0, totalRateGlobal, 1150);
+                    // 춘식이 튀어오르는 시간(1.5초 = 1500ms)에 맞춰 숫자 카운트업 실행
+                    animateBadgeRate(badgeRate, 0, totalRateGlobal, 1500);
+
+                    // 모션이 거의 끝날 즈음(약 1초 뒤) 먼지 나타나기
+                    setTimeout(() => {
+                        dustImg.style.opacity = '1';
+                    }, 1000);
+                    
                 }, 250); // 착지하는 시간(200ms) + 눌리는 대기시간(50ms)
             }, 100); // 렌더링 안정화를 위한 짧은 대기
         }
