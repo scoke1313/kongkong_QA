@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단버튼 배경제거 완벽판 & 결과 리브 적용(2배 사이즈)</title>
+    <title>콩콩춘식 - 하단버튼 배경제거 완벽판 & 결과 리브 적용(위치 조정/속도 완화)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -115,22 +115,22 @@
         .f-graph-area { text-align: center; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 65px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
-        /* ★ 0.5초 뒤에 뾰오옹 올라가도록 transition 추가 */
+        /* ★ 모션 속도를 10에서 7로 늦춤 (0.8s -> 1.15s) */
         #graph-dynamic-wrapper { 
             position: absolute; left: 50%; transform: translateX(-50%); width: 393px; 
             bottom: 6px; z-index: 2; 
-            transition: bottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: bottom 1.15s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* ★ 전역 캔버스 스타일(100%)을 무시하고 강제로 2배(400px) 고정 크기 부여! */
+        /* ★ 리브 컨테이너 138px 하단 이동 (-137px 설정) */
         .f-graph-char-rive { 
             position: absolute; 
             left: 50%; 
-            bottom: 1px; 
+            bottom: -137px; /* 기존 1px에서 138px 하단으로 이동 */
             transform: translateX(-50%); 
             z-index: 5; 
-            width: 400px !important;  /* 폭 2배로 확장 */
-            height: 400px !important; /* 높이 2배로 확장 */
+            width: 400px !important;  
+            height: 400px !important; 
         }
         
         .f-graph-dust { position: absolute; width: 82px; height: 100px; left: 50%; margin-left: -41px; top: -1px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; z-index: -1; }
