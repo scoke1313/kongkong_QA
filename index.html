@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 모바일 최적화</title>
+    <title>콩콩춘식 - 해상도 최적화 & 반응형 복구</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -52,7 +52,6 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.5); 
         }
 
-        /* --- 인트로 화면 --- */
         #intro-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #FFFDF5; z-index: 2500; cursor: pointer;
@@ -61,24 +60,9 @@
         }
         #intro-canvas { width: 100%; height: 100%; pointer-events: none; }
 
-        /* --- 메인 화면 (하단 정렬로 완벽 수정) --- */
-        #main-screen { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: url('bg_main.png'); 
-            background-size: 100% auto; 
-            background-position: bottom center; /* 상단 기준이 아닌 하단 기준으로 고정 */
-            background-repeat: no-repeat;
-            z-index: 2000; 
-        }
-        
-        #main-rive-container { 
-            position: absolute; 
-            bottom: 0px; /* 기존 top:0px 에서 하단 고정으로 변경 */
-            left: 0; 
-            width: 100%; 
-            height: 852px; 
-            pointer-events: none; 
-        }
+        /* 메인 화면 하단 정렬 이슈 복구 (background-size: 100% 100% 원복) */
+        #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
+        #main-rive-container { position: absolute; top: 0px; left: 0; width: 100%; height: 852px; pointer-events: none; }
         #main-canvas { width: 100%; height: 100%; }
         
         #start-button {
@@ -87,7 +71,6 @@
             background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001;
         }
 
-        /* --- 결과 화면 --- */
         #result-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.65); 
@@ -124,7 +107,6 @@
         #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
         #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
 
-        /* --- 인게임 UI --- */
         #ingame-ui { display: none; }
         #btn-close-wrap { position: absolute; top: 16px; left: 4px; width: 44px; height: 44px; z-index: 1001; cursor: pointer; }
         #btn-close-wrap img { width: 100%; height: 100%; display: block; object-fit: contain; }
@@ -133,7 +115,6 @@
         .rate-capsule { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 2px solid #F0E0C6; border-radius: 30px; width: 110px; height: 46px; box-sizing: border-box; padding: 0 15px; }
         #rate-board { font-size: 20px; font-weight: 800; color: #2D1D1C; font-family: 'Arial', sans-serif; }
 
-        /* --- 게임 요소 & 컨트롤러 --- */
         #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
         canvas { width: 100%; height: 100%; }
         
@@ -215,148 +196,57 @@
 let audioCtx;
 
 function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
 }
 
 function playSfxJump() {
-    if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(250, t);
-    osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.045, t + 0.02); 
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    osc.start(t);
-    osc.stop(t + 0.15);
+    if (!audioCtx) return; const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(250, t); osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
+    gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.045, t + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15); osc.start(t); osc.stop(t + 0.15);
 }
 
 function playSfxClover() {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
-    osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.05); 
-    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.15);
+    if (!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'triangle'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.05); 
+    gain.gain.setValueAtTime(0.07, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
 }
 
 function playSfxSuperJump() {
-    if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine'; 
-    osc.frequency.setValueAtTime(400, t);
-    osc.frequency.exponentialRampToValueAtTime(1500, t + 0.4);
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.07, t + 0.05); 
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    osc.start(t);
-    osc.stop(t + 0.5);
+    if (!audioCtx) return; const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(400, t); osc.frequency.exponentialRampToValueAtTime(1500, t + 0.4);
+    gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.07, t + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5); osc.start(t); osc.stop(t + 0.5);
 }
 
 function playSfxHit() {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
-    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.2);
+    if (!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.07, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
 }
 
 function playSfxBreak() {
-    if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const bufferSize = audioCtx.sampleRate * 0.15; 
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1500, t);
-    filter.frequency.exponentialRampToValueAtTime(200, t + 0.15);
-    const noiseGain = audioCtx.createGain();
-    noiseGain.gain.setValueAtTime(0.08, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    noise.connect(filter);
-    filter.connect(noiseGain);
-    noiseGain.connect(audioCtx.destination);
-    noise.start(t);
-
-    const osc = audioCtx.createOscillator();
-    const oscGain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(150, t);
-    osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-    oscGain.gain.setValueAtTime(0.06, t);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    osc.connect(oscGain);
-    oscGain.connect(audioCtx.destination);
-    osc.start(t);
-    osc.stop(t + 0.15);
+    if (!audioCtx) return; const t = audioCtx.currentTime; const bufferSize = audioCtx.sampleRate * 0.15; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+    const noise = audioCtx.createBufferSource(); noise.buffer = buffer; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1500, t); filter.frequency.exponentialRampToValueAtTime(200, t + 0.15);
+    const noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.08, t); noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15); noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(audioCtx.destination); noise.start(t);
+    const osc = audioCtx.createOscillator(); const oscGain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    oscGain.gain.setValueAtTime(0.06, t); oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15); osc.connect(oscGain); oscGain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.15);
 }
 
 function playSfxMouseFall() {
-    if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, t);
-    osc.frequency.linearRampToValueAtTime(1200, t + 0.1); 
-    osc.frequency.exponentialRampToValueAtTime(200, t + 0.5); 
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.05, t + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    osc.start(t);
-    osc.stop(t + 0.5);
+    if (!audioCtx) return; const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.linearRampToValueAtTime(1200, t + 0.1); 
+    osc.frequency.exponentialRampToValueAtTime(200, t + 0.5); gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.05, t + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5); osc.start(t); osc.stop(t + 0.5);
 }
 
 function playSfxGameOver() {
-    if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine'; 
-    osc.frequency.setValueAtTime(500, t);
-    osc.frequency.exponentialRampToValueAtTime(100, t + 0.5); 
-    gain.gain.setValueAtTime(0.07, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    osc.start(t);
-    osc.stop(t + 0.5);
+    if (!audioCtx) return; const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(500, t); osc.frequency.exponentialRampToValueAtTime(100, t + 0.5); 
+    gain.gain.setValueAtTime(0.07, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5); osc.start(t); osc.stop(t + 0.5);
 }
 
 // ==========================================
-// ★ 화면 리사이징 및 모바일 하단 정렬 고정
+// ★ 화면 리사이징: 사용자 요청 사항 완벽 반영
 // ==========================================
 function resizeGame() {
     const stage = document.getElementById('game-stage');
@@ -364,27 +254,33 @@ function resizeGame() {
     const headerUI = document.querySelector('.header-ui-container');
     
     let scale = Math.min(window.innerWidth / 393, 1);
-    let screenHeight = document.body.clientHeight || window.innerHeight;
+    let screenHeight = window.innerHeight; // 모바일 브라우저 주소창 고려한 실제 높이
     let scaledHeight = 852 * scale;
     
     stage.style.left = '50%';
     
-    if (screenHeight > scaledHeight) {
+    if (screenHeight >= scaledHeight) {
+        // 화면이 길 때: 중앙 정렬
         stage.style.top = '50%';
         stage.style.bottom = 'auto';
         stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
         stage.style.transformOrigin = 'center center';
+        
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
     } else {
+        // 화면이 짧을 때: 하단 고정, 상단 크롭, 상단 UI는 5px 여백 유지
         stage.style.top = 'auto';
         stage.style.bottom = '0px';
         stage.style.transform = `translate(-50%, 0) scale(${scale})`;
         stage.style.transformOrigin = 'bottom center';
+        
+        // 짤려나간 상단 높이(크롭) 계산 후 5px 여백 추가
         let cropVirtualY = 852 - (screenHeight / scale);
         let safeTop = cropVirtualY + 5; 
+        
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
-        if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
+        if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px'; // 닫기버튼(16)과 헤더(75)의 간격(59) 유지
     }
 }
 window.addEventListener('resize', resizeGame);
@@ -397,44 +293,27 @@ const dynCanvas = document.getElementById('dynamic-layer-canvas');
 const dynCtx = dynCanvas.getContext('2d');
 
 function setupCanvas() {
-    // 모바일 기기의 실제 물리적 픽셀 비율(보통 2배나 3배)을 가져옵니다.
     const dpr = window.devicePixelRatio || 1;
-    
-    // 캔버스의 실제 해상도를 고해상도로 뻥튀기시킵니다. (흐림 현상 완벽 해결)
     dynCanvas.width = 393 * dpr;
     dynCanvas.height = 852 * dpr;
-    
-    // CSS 상표시 크기는 원래대로 고정
     dynCanvas.style.width = '393px';
     dynCanvas.style.height = '852px';
-    
-    // 그리기 비율 스케일 조정
     dynCtx.scale(dpr, dpr);
-    dynCtx.imageSmoothingEnabled = true; // 매끄러운 렌더링 보장
+    dynCtx.imageSmoothingEnabled = true; 
 }
 setupCanvas();
 
-// 이미지 원본 크기 존중 및 찌그러짐 방지 렌더러
 function drawImageContain(ctx, img, x, y, boxW, boxH) {
     if(!img.complete || img.width === 0) return;
-    
     let ratio = Math.min(boxW / img.width, boxH / img.height);
-    
-    // ★ 핵심 포인트: 원본 '파일사이즈 기본'을 유지하기 위해 
-    // 이미지가 박스보다 작더라도 억지로 늘리지 않습니다 (찌그러짐 방지)
     if (ratio > 1) ratio = 1; 
-    
     let newW = img.width * ratio;
     let newH = img.height * ratio;
-    
-    // 소수점 픽셀로 인한 미세한 흐림(Anti-Aliasing) 현상을 막기 위해 Math.round 처리
     let drawX = Math.round(x + (boxW - newW) / 2);
     let drawY = Math.round(y + (boxH - newH) / 2);
-    
     ctx.drawImage(img, drawX, drawY, Math.round(newW), Math.round(newH));
 }
 
-// 렌더링 최적화를 위해 이미지를 메모리에 미리 로드해둡니다.
 const loadedImages = {};
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
@@ -493,9 +372,7 @@ function skipIntro() {
 
     setTimeout(() => {
         introScreen.style.display = 'none';
-        if (introRive) {
-            introRive.cleanup();
-        }
+        if (introRive) { introRive.cleanup(); }
     }, 300);
 }
 
@@ -530,7 +407,6 @@ function handleTouchChange(e) {
 
     const rect = touchZone.getBoundingClientRect();
     const mid = rect.width / 2;
-
     let currentLeft = false;
     let currentRight = false;
 
@@ -603,7 +479,6 @@ function resetInputState() {
     mouseState = { left: false, right: false };
     syncInput();
 }
-// ==========================================
 
 function startGame() {
     initAudio();
@@ -876,7 +751,6 @@ function update(currentTime) {
                 
                 if (p.item && !p.itemCollected) { 
                     let iImg = loadedImages[`item_${p.item}.png`];
-                    // 클로버 및 아이템 원본 비율/사이즈 보호
                     if(iImg) drawImageContain(dynCtx, iImg, p.x + p.w/2 - 25, p.y - 55, 50, 50);
                 }
             }
@@ -891,10 +765,8 @@ function update(currentTime) {
                 let mImg = loadedImages[mouseImgName];
                 if(mImg) {
                     dynCtx.save();
-                    // 소수점 픽셀 흐림 방지용 Math.round
                     dynCtx.translate(Math.round(p.x + m.x + 36), Math.round(p.y + m.yOffset + 27)); 
                     dynCtx.scale(m.dir, 1);
-                    // 쥐돌이 원본 사이즈 보호 및 찌그러짐 방지
                     drawImageContain(dynCtx, mImg, -36, -27, 72, 54);
                     dynCtx.restore();
                 }
