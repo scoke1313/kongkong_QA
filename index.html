@@ -31,20 +31,33 @@
     <style>
         /* ★ html, body 모두 배경을 #333으로 통일하여 흰색 여백 원천 차단 ★ */
         html, body { background-color: #333; margin: 0; padding: 0; }
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; }
+        
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-end; /* 기본적으로 하단 정렬 (JS에서 동적 제어) */
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden; 
+            touch-action: none; 
+            user-select: none; 
+        }
         
         #game-stage { 
-            position: relative; width: 393px; height: 852px; 
+            position: relative; 
+            width: 393px; 
+            height: 852px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); 
+            transform-origin: bottom center; /* 기본 스케일 기준점 하단 중앙 */
         }
 
         /* --- 인트로 화면 --- */
         #intro-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #FFFDF5; z-index: 2500; cursor: pointer;
-            opacity: 1; /* 페이드아웃을 위한 기본값 */
-            transition: opacity 0.3s ease-out; /* 0.3초간 빠르고 부드럽게 사라짐 */
+            opacity: 1; 
+            transition: opacity 0.3s ease-out; 
         }
         #intro-canvas { width: 100%; height: 100%; pointer-events: none; }
 
@@ -191,6 +204,32 @@
 </div>
 
 <script>
+// ★ 핵심: 반응형 제어 로직 (너비 최대 393 고정 & 상단 크롭 보호) ★
+function resizeGame() {
+    const stage = document.getElementById('game-stage');
+    
+    // 1. 디바이스 너비 비율 계산, 단 최대 크기(scale 1)를 넘지 못하도록 Math.min 적용!
+    let scale = Math.min(window.innerWidth / 393, 1);
+    
+    // 2. 계산된 비율 적용
+    stage.style.transform = `scale(${scale})`;
+    
+    // 3. 디바이스 높이가 게임 높이(축소된 상태 포함)보다 크다면 화면 중앙에 배치
+    // 반대로 모바일처럼 게임 높이가 더 길다면 원래 요청하신 대로 화면 하단에 고정하고 상단이 잘리도록 설정
+    if (window.innerHeight > 852 * scale) {
+        document.body.style.alignItems = 'center';      // 상하 중앙 정렬
+        stage.style.transformOrigin = 'center center';  // 스케일 기준점 중앙
+    } else {
+        document.body.style.alignItems = 'flex-end';    // 화면 바닥에 붙이기
+        stage.style.transformOrigin = 'bottom center';  // 스케일 기준점 하단
+    }
+}
+
+// 화면 사이즈 변경 시마다 작동
+window.addEventListener('resize', resizeGame);
+resizeGame();
+// ===========================================
+
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
@@ -230,15 +269,11 @@ let introRive = new rive.Rive({
 
 function skipIntro() {
     const introScreen = document.getElementById('intro-screen');
-    
-    // 이미 스킵(투명화)이 진행 중이거나 끝났으면 중복 실행 방지
     if (introScreen.style.opacity === '0') return; 
 
-    // 터치 방지 및 투명도 0으로 설정하여 페이드아웃 시작
     introScreen.style.pointerEvents = 'none';
     introScreen.style.opacity = '0';
     
-    // 메인 화면을 미리 노출하고 Rive 로드 시작 (배경에 자연스럽게 나타남)
     document.getElementById('main-screen').style.display = 'block';
     
     mainRive = new rive.Rive({
@@ -249,7 +284,6 @@ function skipIntro() {
         onLoad: () => mainRive.resizeDrawingSurfaceToCanvas()
     });
 
-    // 0.3초(CSS transition 시간) 후 인트로 요소 완전히 제거 및 리소스 정리
     setTimeout(() => {
         introScreen.style.display = 'none';
         if (introRive) {
