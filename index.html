@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 사운드+최적화</title>
+    <title>콩콩춘식 - 멀티터치</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -206,7 +206,7 @@
 
 <script>
 // ==========================================
-// ★ Web Audio API (사운드 효과 개선) ★
+// ★ Web Audio API 
 // ==========================================
 let audioCtx;
 
@@ -298,26 +298,21 @@ function playSfxHit() {
 function playSfxBreak() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
-
     const bufferSize = audioCtx.sampleRate * 0.15; 
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
         data[i] = Math.random() * 2 - 1; 
     }
-    
     const noise = audioCtx.createBufferSource();
     noise.buffer = buffer;
-    
     const filter = audioCtx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(1500, t);
     filter.frequency.exponentialRampToValueAtTime(200, t + 0.15);
-
     const noiseGain = audioCtx.createGain();
     noiseGain.gain.setValueAtTime(0.08, t);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-
     noise.connect(filter);
     filter.connect(noiseGain);
     noiseGain.connect(audioCtx.destination);
@@ -328,10 +323,8 @@ function playSfxBreak() {
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(150, t);
     osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-    
     oscGain.gain.setValueAtTime(0.06, t);
     oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    
     osc.connect(oscGain);
     oscGain.connect(audioCtx.destination);
     osc.start(t);
@@ -345,16 +338,13 @@ function playSfxMouseFall() {
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     osc.type = 'sine';
     osc.frequency.setValueAtTime(800, t);
     osc.frequency.linearRampToValueAtTime(1200, t + 0.1); 
     osc.frequency.exponentialRampToValueAtTime(200, t + 0.5); 
-
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(0.05, t + 0.1);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-
     osc.start(t);
     osc.stop(t + 0.5);
 }
@@ -366,14 +356,11 @@ function playSfxGameOver() {
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     osc.type = 'sine'; 
     osc.frequency.setValueAtTime(500, t);
     osc.frequency.exponentialRampToValueAtTime(100, t + 0.5); 
-
     gain.gain.setValueAtTime(0.07, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-
     osc.start(t);
     osc.stop(t + 0.5);
 }
@@ -395,7 +382,6 @@ function resizeGame() {
         stage.style.bottom = 'auto';
         stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
         stage.style.transformOrigin = 'center center';
-        
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
     } else {
@@ -403,10 +389,8 @@ function resizeGame() {
         stage.style.bottom = '0px';
         stage.style.transform = `translate(-50%, 0) scale(${scale})`;
         stage.style.transformOrigin = 'bottom center';
-        
         let cropVirtualY = 852 - (screenHeight / scale);
         let safeTop = cropVirtualY + 5; 
-        
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
@@ -474,6 +458,96 @@ function skipIntro() {
     }, 300);
 }
 
+// ==========================================
+// ★ 완벽한 멀티 터치/키보드 감지 시스템 적용 ★
+// ==========================================
+let kbdState = { left: false, right: false };
+let activeTouches = { left: false, right: false };
+let mouseState = { left: false, right: false };
+
+function syncInput() {
+    keys['ArrowLeft'] = kbdState.left || activeTouches.left || mouseState.left;
+    keys['ArrowRight'] = kbdState.right || activeTouches.right || mouseState.right;
+
+    if (keys['ArrowLeft']) document.getElementById('btn-left').classList.add('ctrl-pressed');
+    else document.getElementById('btn-left').classList.remove('ctrl-pressed');
+
+    if (keys['ArrowRight']) document.getElementById('btn-right').classList.add('ctrl-pressed');
+    else document.getElementById('btn-right').classList.remove('ctrl-pressed');
+}
+
+window.addEventListener('keydown', (e) => { 
+    if(isGameOver) return;
+    if (e.code === 'ArrowLeft') kbdState.left = true;
+    if (e.code === 'ArrowRight') kbdState.right = true;
+    syncInput();
+});
+window.addEventListener('keyup', (e) => { 
+    if (e.code === 'ArrowLeft') kbdState.left = false;
+    if (e.code === 'ArrowRight') kbdState.right = false;
+    syncInput();
+});
+
+const touchZone = document.getElementById('touch-zone');
+
+function handleTouches(e) {
+    if (e) e.preventDefault();
+    activeTouches.left = false;
+    activeTouches.right = false;
+
+    if (isGameOver || !isPlaying) {
+        syncInput();
+        return;
+    }
+
+    const rect = touchZone.getBoundingClientRect();
+    const mid = rect.width / 2;
+
+    // 모든 현재 터치 포인트를 순회하며 좌/우 눌림 상태 감지
+    for (let i = 0; i < e.touches.length; i++) {
+        const x = e.touches[i].clientX - rect.left;
+        if (x < mid) activeTouches.left = true;
+        else activeTouches.right = true;
+    }
+    syncInput();
+}
+
+touchZone.addEventListener('touchstart', handleTouches, {passive: false});
+touchZone.addEventListener('touchmove', handleTouches, {passive: false});
+touchZone.addEventListener('touchend', handleTouches, {passive: false});
+touchZone.addEventListener('touchcancel', handleTouches, {passive: false});
+
+let isMouseDown = false;
+function handleMouse(e, isDown) {
+    mouseState.left = false;
+    mouseState.right = false;
+
+    if (isGameOver || !isPlaying || !isDown) {
+        syncInput();
+        return;
+    }
+
+    const rect = touchZone.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < rect.width / 2) mouseState.left = true;
+    else mouseState.right = true;
+    syncInput();
+}
+
+touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handleMouse(e, true); });
+touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handleMouse(e, true); });
+touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handleMouse(e, false); });
+touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handleMouse(e, false); });
+
+function resetInputState() {
+    keys = {};
+    kbdState = { left: false, right: false };
+    activeTouches = { left: false, right: false };
+    mouseState = { left: false, right: false };
+    syncInput();
+}
+// ==========================================
+
 function startGame() {
     initAudio();
 
@@ -486,7 +560,7 @@ function startGame() {
     
     document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
     isPlaying = true; isGameOver = false;
-    keys = {}; 
+    resetInputState();
     initPlatforms();
     
     playSfxJump(); 
@@ -500,14 +574,12 @@ function resetGame() {
     const screen = document.getElementById('result-screen');
     screen.style.display = 'none';
     screen.classList.remove('show');
-    keys = {};
+    resetInputState();
     isGameOver = false;
     isPlaying = true;
     isSuperJumping = false;
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
-    document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    document.getElementById('btn-right').classList.remove('ctrl-pressed');
     initPlatforms();
     
     lastTime = performance.now(); 
@@ -519,13 +591,10 @@ function showResult() {
     if (isGameOver) return; 
     isPlaying = false; 
     isGameOver = true;
-    keys = {}; 
+    resetInputState();
     
     playSfxGameOver();
 
-    document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    document.getElementById('btn-right').classList.remove('ctrl-pressed');
-    
     const finalDist = Math.floor(score * 0.01);
     const totalRate = (score * 0.0001) + (cloverCount * 0.1);
     document.getElementById('res-distance').innerText = `${finalDist}m`;
@@ -542,67 +611,6 @@ function loadRive(fileName) {
     if (riveInstance) riveInstance.cleanup();
     riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
 }
-
-window.addEventListener('keydown', (e) => { 
-    if(isGameOver) return;
-    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = true; document.getElementById('btn-left').classList.add('ctrl-pressed'); }
-    if (e.code === 'ArrowRight') { keys['ArrowRight'] = true; document.getElementById('btn-right').classList.add('ctrl-pressed'); }
-});
-window.addEventListener('keyup', (e) => { 
-    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = false; document.getElementById('btn-left').classList.remove('ctrl-pressed'); }
-    if (e.code === 'ArrowRight') { keys['ArrowRight'] = false; document.getElementById('btn-right').classList.remove('ctrl-pressed'); }
-});
-
-const touchZone = document.getElementById('touch-zone');
-
-const handlePointer = (e, isDown) => {
-    e.preventDefault();
-    if (isGameOver || !isPlaying) {
-        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-        return;
-    }
-    
-    if (!isDown) {
-        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-        return;
-    }
-    
-    let clientX;
-    if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-    } else {
-        clientX = e.clientX;
-    }
-    
-    const rect = touchZone.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const mid = rect.width / 2;
-    
-    if (x < mid) {
-        keys['ArrowLeft'] = true; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.add('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-    } else {
-        keys['ArrowRight'] = true; keys['ArrowLeft'] = false;
-        document.getElementById('btn-right').classList.add('ctrl-pressed');
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    }
-};
-
-touchZone.addEventListener('touchstart', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchend', (e) => handlePointer(e, false), {passive: false});
-touchZone.addEventListener('touchcancel', (e) => handlePointer(e, false), {passive: false});
-
-let isMouseDown = false;
-touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handlePointer(e, true); });
-touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handlePointer(e, true); });
-touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handlePointer(e, false); });
-touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handlePointer(e, false); });
 
 class WoodParticle {
     constructor(x, y) {
@@ -631,7 +639,6 @@ function createPlatformData(yPos) {
     let canHaveMouse = (width >= 98) && (rand < mouseProb); 
     let itemType = (!canHaveMouse && rand > 0.8) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
 
-    // ★ 수정사항: 200미터가 넘어가도 쥐돌이는 무조건 1마리만 나오게 변경 ★
     if (canHaveMouse) {
         mice.push({
             x: Math.random() * (width - 72),
@@ -787,7 +794,6 @@ function update(currentTime) {
         accumulator -= fpsInterval;
     }
 
-    // ★ 성능 향상을 위해 DOM 요소를 매 프레임 개별 삭제/생성하지 않고 innerHTML로 묶어서 한번에 업데이트 ★
     if (isPlaying && !isGameOver) {
         document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
         
