@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - UI 디테일 완벽 적용판</title>
+    <title>콩콩춘식 - 최종 이벤트 디테일 완벽 적용</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -80,7 +80,7 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 
+           ★ 최종 이벤트 결과 상세 페이지 디테일 튜닝
            ========================================== */
         #final-event-page {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -90,67 +90,78 @@
         }
         #final-event-page::-webkit-scrollbar { display: none; }
 
-        /* 상단바: 좌우 여백 제거하고 양끝에 딱 붙임 */
+        /* 상단바 */
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .f-sns-btn { position: absolute; right: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        /* 타이틀 영역: 기존 margin-top 20px에서 60px로 (40px 하단 이동) */
+        /* 타이틀 영역 */
         .f-header { text-align: center; margin-top: 60px; margin-bottom: 30px; }
         .f-main-title { font-size: 32px; font-weight: 800; line-height: 1.35; color: #222; }
         .f-highlight { color: #DD6E66; }
         
-        /* 금리 요약 박스: margin-bottom 40px에서 60px로 (하단 컨텐츠 전체 20px 추가 이동) */
-        .f-rate-box { background: #FFF9F2; border-radius: 20px; margin: 0 24px 60px; display: flex; padding: 24px 0; }
+        /* 금리 요약 박스: 333x86, gap 3px 감소 반영 */
+        .f-rate-box { 
+            width: 333px; height: 86px; margin: 0 auto 60px;
+            background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; 
+        }
         .f-rate-col { flex: 1; text-align: center; position: relative; }
-        .f-rate-col:first-child::after { content: ''; position: absolute; right: 0; top: 10%; height: 80%; width: 1px; background-color: #F0E2D3; }
-        .f-rate-label { font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 600; }
-        .f-rate-val { font-size: 22px; font-weight: 800; color: #333; }
+        .f-rate-col:first-child::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background-color: #F0E2D3; }
+        .f-rate-label { font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; } /* 기존 8px에서 5px로 3px 줄임 */
+        .f-rate-val { font-size: 22px; font-weight: 800; color: #333; line-height: 1; }
         
         /* 그래프 영역 */
-        .f-graph-area { text-align: center; margin-bottom: 50px; position: relative; padding: 0 24px; }
-        .f-graph-bg { width: 100%; height: auto; display: block; }
+        .f-graph-area { text-align: center; margin-bottom: 50px; position: relative; padding: 0; }
+        /* 그래프 배경 이미지 정확한 사이즈 */
+        .f-graph-bg { width: 321px; height: 294px; display: block; margin: 0 auto; }
         
-        /* 선과 캡슐 영역: 너비 205px 고정, 간격 0으로 딱 붙임 */
-        .f-graph-line-wrap { position: absolute; left: 50%; transform: translateX(-50%); width: 205px; top: 55%; display: flex; align-items: center; justify-content: flex-start; }
-        .f-graph-line { flex: 1; height: 1px; border-top: 2px solid #DD6E66; }
-        /* 캡슐 사이즈 81x35, 기본폰트 적용 */
+        /* 핑크 선과 캡슐 영역: 좌측 71px 여백, 너비 205px 라인, 81px 캡슐 (우측 여백 자동 36px) */
+        .f-graph-line-wrap { 
+            position: absolute; left: 71px; top: 55%; 
+            display: flex; align-items: center; justify-content: flex-start;
+        }
+        .f-graph-line { width: 205px; height: 0; border-top: 2px solid #DD6E66; }
         .f-graph-badge { 
             width: 81px; height: 35px; background: #DD6E66; color: #FFF; border-radius: 20px; 
             font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center;
-            font-family: inherit; 
+            font-family: inherit; /* 기본 폰트로 변경 */
         }
         
-        /* 콩콩 춘식이: 사이즈 0.65배 축소 (130px -> 85px) */
-        .f-graph-char { position: absolute; width: 85px; left: 50%; top: 55%; transform: translate(-50%, -100%); margin-top: 5px; }
+        /* 콩콩 춘식이 정확한 사이즈 (84x136) */
+        .f-graph-char { position: absolute; width: 84px; height: 136px; left: 50%; top: 55%; transform: translate(-50%, -100%); margin-top: 5px; }
 
         /* 프로모션 섹션 1 */
         .f-promo-section { text-align: center; margin-bottom: 60px; }
-        .f-tag { display: inline-block; background: #4A3E35; color: #FFF; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: 20px; margin-bottom: 16px; } /* 폰트 굵기 완화 */
+        /* bg캡슐 사이즈 136x37px */
+        .f-tag { 
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 136px; height: 37px; background: #4A3E35; color: #FFF; 
+            font-size: 13px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box;
+        }
+        /* 텍스트 굵기 통일 */
         .f-desc { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
-        /* result1 이미지 1.25배 (160 -> 200px) */
+        /* result1 이미지 1.25배 */
         .f-promo-img { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
         /* 프로모션 섹션 2 */
         .f-promo-section-2 { text-align: center; margin-bottom: 60px; }
         .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
-        /* result2 이미지 1.25배 (160 -> 200px) */
+        /* result2 이미지 1.25배 */
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
         /* 공유 섹션 */
         .f-share-section { background: #FFFDF5; padding: 60px 24px; text-align: center; }
-        /* 타이틀 폰트 확대 및 줄간격(행간) 축소 */
         .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 12px; } 
-        .f-share-clover { color: #31B087; } /* 요청하신 녹색 컬러 적용 */
-        .f-share-sub { font-size: 15px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;}
-        /* result3 이미지 1.25배 (150 -> 188px) */
+        .f-share-clover { color: #31B087; } /* 요청하신 녹색 컬러 */
+        .f-share-sub { font-size: 16px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} /* 폰트 1px 키움 */
+        /* result3 이미지 1.25배 */
         .f-share-img { width: 188px; height: auto; display: block; margin: 0 auto 30px; } 
         
-        /* 공유 버튼: 사이즈 219x64px, 컬러 #555555 */
+        /* 공유 버튼: 사이즈 219x64px, 컬러 #555555, 폰트 1px 키움, 아이콘 간격 10px */
         .f-share-btn { 
             background: #555555; color: #FFF; width: 219px; height: 64px; border: none; 
-            border-radius: 32px; font-size: 16px; font-weight: 700; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 8px;
+            border-radius: 32px; font-size: 17px; font-weight: 700; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 10px;
         }
         
         /* 하단 고정 버튼 */
@@ -202,7 +213,9 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" style="margin-left: 20px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </span>
             <span>이벤트</span>
-            <span class="f-sns-btn"><img src="icon_sns.png" style="width:48px; height:48px; object-fit:contain;" alt="share"></span>
+            <span class="f-sns-btn">
+                <img src="icon_sns.png" style="width:44px; height:44px; object-fit:contain;" alt="share">
+            </span>
         </div>
         
         <div class="f-header">
@@ -237,7 +250,7 @@
             <span class="f-tag">지금 통장을 만들면!</span>
             <div class="f-desc">
                 이 금리로 30만원씩 매월 저축하면<br>
-                약 <b id="f-interest-amount" style="color:#222;">28,000</b>원의 이자를 받을 수 있어요
+                약 <span id="f-interest-amount" style="color:#222; font-weight: inherit;">28,000</span>원의 이자를 받을 수 있어요
             </div>
             <img src="img_result1.png" class="f-promo-img" alt="bank card">
         </div>
@@ -254,7 +267,7 @@
             <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
             <img src="img_result3.png" class="f-share-img" alt="clover letter">
             <button class="f-share-btn">
-                <img src="icon_sns.png" style="width:40px; height:40px; filter: brightness(0) invert(1);" alt="share"> 친구에게 알려주기
+                <img src="icon_sns.png" style="width:44px; height:44px; filter: brightness(0) invert(1);" alt="share"> 친구에게 알려주기
             </button>
         </div>
         
