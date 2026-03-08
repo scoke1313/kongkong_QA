@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단버튼 10px 하향 적용 완벽판</title>
+    <title>콩콩춘식 - 하단버튼 10px 하향 안전 적용판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -78,12 +78,12 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 
+           ★ 최종 이벤트 결과 상세 페이지
            ========================================== */
         #final-event-page {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #FFF9F2; z-index: 9999; display: none;
-            overflow: hidden; 
+            overflow: hidden; /* 버튼이 화면 밖으로 나가면 잘려버리는 원인 */
             overscroll-behavior: none;
         }
         
@@ -144,16 +144,17 @@
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* ★ 하단 버튼 10px 하단 이동 적용 (padding-bottom 30px -> 20px로 수정하여 시각적으로 10px 내림) */
+        /* ★ 하단 고정 버튼 수정 (안전하게 안쪽 여백을 줄여서 10px 하강 효과) ★ */
         .f-bottom-fixed { 
             position: fixed; 
-            bottom: 0; 
-            left: 50%; transform: translateX(-50%); 
+            bottom: 0; left: 50%; transform: translateX(-50%); 
             width: 100%; max-width: 393px; 
             background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
-            padding: 30px 24px calc(20px + env(safe-area-inset-bottom, 0px)); 
-            box-sizing: border-box; 
-            z-index: 5000; 
+            
+            /* 기존 하단 여백을 10px 줄여(calc(10px+...)) 물리적으로 버튼을 10px 밑으로 내림. 잘림 현상 없음 */
+            padding: 40px 24px calc(10px + env(safe-area-inset-bottom, 0px)); 
+            
+            box-sizing: border-box; z-index: 5000; 
         }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
@@ -414,6 +415,9 @@ function resizeGame() {
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
+
+    const finalPage = document.getElementById('final-event-page');
+    if (finalPage) finalPage.style.height = screenHeight + 'px';
 }
 window.addEventListener('resize', () => setTimeout(resizeGame, 100)); 
 if (window.visualViewport) { window.visualViewport.addEventListener('resize', resizeGame); }
@@ -611,6 +615,9 @@ function resetGame() {
     requestAnimationFrame(update); 
 }
 
+// ==========================================
+// ★ 게임 결과 처리 및 금리 비례 정밀 포지셔닝 로직
+// ==========================================
 let earnedRateGlobal = 0;
 let totalRateGlobal = 0;
 const BASE_RATE = 1.80; 
