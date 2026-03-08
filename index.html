@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 멀티터치</title>
+    <title>콩콩춘식 - 조작감패치</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -226,15 +226,12 @@ function playSfxJump() {
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
     osc.type = 'sine';
     osc.frequency.setValueAtTime(250, t);
     osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
-    
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(0.045, t + 0.02); 
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    
     osc.start(t);
     osc.stop(t + 0.15);
 }
@@ -245,14 +242,11 @@ function playSfxClover() {
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
     osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.05); 
-    
     gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-    
     osc.start();
     osc.stop(audioCtx.currentTime + 0.15);
 }
@@ -264,15 +258,12 @@ function playSfxSuperJump() {
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
     osc.type = 'sine'; 
     osc.frequency.setValueAtTime(400, t);
     osc.frequency.exponentialRampToValueAtTime(1500, t + 0.4);
-    
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(0.07, t + 0.05); 
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    
     osc.start(t);
     osc.stop(t + 0.5);
 }
@@ -283,14 +274,11 @@ function playSfxHit() {
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(150, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
-    
     gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-    
     osc.start();
     osc.stop(audioCtx.currentTime + 0.2);
 }
@@ -301,9 +289,7 @@ function playSfxBreak() {
     const bufferSize = audioCtx.sampleRate * 0.15; 
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1; 
-    }
+    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
     const noise = audioCtx.createBufferSource();
     noise.buffer = buffer;
     const filter = audioCtx.createBiquadFilter();
@@ -459,22 +445,95 @@ function skipIntro() {
 }
 
 // ==========================================
-// ★ 완벽한 멀티 터치/키보드 감지 시스템 적용 ★
+// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘 ★
 // ==========================================
-let kbdState = { left: false, right: false };
+let touchOrder = []; // 눌린 방향을 순서대로 저장하는 배열
 let activeTouches = { left: false, right: false };
+let kbdState = { left: false, right: false };
 let mouseState = { left: false, right: false };
 
 function syncInput() {
+    // 키보드, 마우스, 그리고 "가장 마지막에 눌린 터치" 중 하나라도 true면 해당 방향으로 이동
     keys['ArrowLeft'] = kbdState.left || activeTouches.left || mouseState.left;
     keys['ArrowRight'] = kbdState.right || activeTouches.right || mouseState.right;
 
+    // UI 버튼 눌림 효과 업데이트
     if (keys['ArrowLeft']) document.getElementById('btn-left').classList.add('ctrl-pressed');
     else document.getElementById('btn-left').classList.remove('ctrl-pressed');
 
     if (keys['ArrowRight']) document.getElementById('btn-right').classList.add('ctrl-pressed');
     else document.getElementById('btn-right').classList.remove('ctrl-pressed');
 }
+
+function handleTouchChange(e) {
+    if (e) e.preventDefault();
+    if (isGameOver || !isPlaying) {
+        touchOrder = [];
+        activeTouches.left = false;
+        activeTouches.right = false;
+        syncInput();
+        return;
+    }
+
+    const rect = touchZone.getBoundingClientRect();
+    const mid = rect.width / 2;
+
+    let currentLeft = false;
+    let currentRight = false;
+
+    // 현재 화면에 닿아있는 모든 손가락의 위치를 파악
+    for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].clientX - rect.left < mid) currentLeft = true;
+        else currentRight = true;
+    }
+
+    // 떼어진 손가락은 배열에서 제거
+    if (!currentLeft) touchOrder = touchOrder.filter(d => d !== 'left');
+    if (!currentRight) touchOrder = touchOrder.filter(d => d !== 'right');
+
+    // 새로 눌린 손가락은 배열 맨 끝(최신)에 추가
+    if (currentLeft && !touchOrder.includes('left')) touchOrder.push('left');
+    if (currentRight && !touchOrder.includes('right')) touchOrder.push('right');
+
+    // 오직 배열의 가장 마지막(최신) 방향만 true로 설정!
+    activeTouches.left = false;
+    activeTouches.right = false;
+    if (touchOrder.length > 0) {
+        activeTouches[touchOrder[touchOrder.length - 1]] = true;
+    }
+
+    syncInput();
+}
+
+const touchZone = document.getElementById('touch-zone');
+touchZone.addEventListener('touchstart', handleTouchChange, {passive: false});
+touchZone.addEventListener('touchmove', handleTouchChange, {passive: false});
+touchZone.addEventListener('touchend', handleTouchChange, {passive: false});
+touchZone.addEventListener('touchcancel', handleTouchChange, {passive: false});
+
+// PC 테스트용 마우스/키보드 이벤트 
+let isMouseDown = false;
+function handleMouse(e, isDown) {
+    if (!isDown) {
+        mouseState.left = false;
+        mouseState.right = false;
+    } else {
+        if (isGameOver || !isPlaying) return;
+        const rect = touchZone.getBoundingClientRect();
+        if (e.clientX - rect.left < rect.width / 2) {
+            mouseState.left = true;
+            mouseState.right = false;
+        } else {
+            mouseState.left = false;
+            mouseState.right = true;
+        }
+    }
+    syncInput();
+}
+touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handleMouse(e, true); });
+touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handleMouse(e, true); });
+touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handleMouse(e, false); });
+touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handleMouse(e, false); });
 
 window.addEventListener('keydown', (e) => { 
     if(isGameOver) return;
@@ -488,61 +547,11 @@ window.addEventListener('keyup', (e) => {
     syncInput();
 });
 
-const touchZone = document.getElementById('touch-zone');
-
-function handleTouches(e) {
-    if (e) e.preventDefault();
-    activeTouches.left = false;
-    activeTouches.right = false;
-
-    if (isGameOver || !isPlaying) {
-        syncInput();
-        return;
-    }
-
-    const rect = touchZone.getBoundingClientRect();
-    const mid = rect.width / 2;
-
-    // 모든 현재 터치 포인트를 순회하며 좌/우 눌림 상태 감지
-    for (let i = 0; i < e.touches.length; i++) {
-        const x = e.touches[i].clientX - rect.left;
-        if (x < mid) activeTouches.left = true;
-        else activeTouches.right = true;
-    }
-    syncInput();
-}
-
-touchZone.addEventListener('touchstart', handleTouches, {passive: false});
-touchZone.addEventListener('touchmove', handleTouches, {passive: false});
-touchZone.addEventListener('touchend', handleTouches, {passive: false});
-touchZone.addEventListener('touchcancel', handleTouches, {passive: false});
-
-let isMouseDown = false;
-function handleMouse(e, isDown) {
-    mouseState.left = false;
-    mouseState.right = false;
-
-    if (isGameOver || !isPlaying || !isDown) {
-        syncInput();
-        return;
-    }
-
-    const rect = touchZone.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    if (x < rect.width / 2) mouseState.left = true;
-    else mouseState.right = true;
-    syncInput();
-}
-
-touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handleMouse(e, true); });
-touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handleMouse(e, true); });
-touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handleMouse(e, false); });
-touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handleMouse(e, false); });
-
 function resetInputState() {
     keys = {};
-    kbdState = { left: false, right: false };
+    touchOrder = [];
     activeTouches = { left: false, right: false };
+    kbdState = { left: false, right: false };
     mouseState = { left: false, right: false };
     syncInput();
 }
@@ -550,19 +559,16 @@ function resetInputState() {
 
 function startGame() {
     initAudio();
-
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
-    
     document.getElementById('touch-zone').style.display = 'block'; 
     document.querySelectorAll('.controller').forEach(el => el.style.display = 'block');
-    
     document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
+    
     isPlaying = true; isGameOver = false;
     resetInputState();
     initPlatforms();
-    
     playSfxJump(); 
 
     lastTime = performance.now(); 
@@ -574,6 +580,7 @@ function resetGame() {
     const screen = document.getElementById('result-screen');
     screen.style.display = 'none';
     screen.classList.remove('show');
+    
     resetInputState();
     isGameOver = false;
     isPlaying = true;
@@ -699,15 +706,19 @@ function update(currentTime) {
 
     while (accumulator >= fpsInterval) {
         
+        // Touch 입력값에 따라 물리 적용
         if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
         if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
+        
         posX = Math.max(-153, Math.min(153, posX));
         velocityY += isSuperJumping ? PHYSICS.gravity * 0.5 : PHYSICS.gravity;
         currentY += velocityY;
         mouseAnimFrame = (mouseAnimFrame + 1) % 20;
+        
         let currentTotalY = -currentY + bgScrollY;
         if (currentTotalY > maxReachY) { maxReachY = currentTotalY; score = maxReachY; document.getElementById('score-board').innerText = Math.floor(score * 0.01) + "m"; }
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
+        
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
         
@@ -731,15 +742,9 @@ function update(currentTime) {
                     if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
                         playSfxHit();
                         velocityY = -15; 
-                        
                         let playerCenterX = charLeft + 25; 
                         let ratCenterX = mx + 36;          
-                        if (playerCenterX < ratCenterX) {
-                            posX -= 100; 
-                        } else {
-                            posX += 100; 
-                        }
-                        
+                        if (playerCenterX < ratCenterX) posX -= 100; else posX += 100; 
                         m.hit = true; m.hitTimer = 15; m.stunTimer = 60; 
                     }
                 } else { 
