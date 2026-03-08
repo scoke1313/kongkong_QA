@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단버튼 고정 및 스크롤 완벽 최적화</title>
+    <title>콩콩춘식 - 하단 고정 완벽 해결 및 최종 디테일판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -78,34 +78,36 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 (모바일 100% 최적화)
+           ★ 최종 이벤트 결과 상세 페이지 
            ========================================== */
-        /* 화면 위/아래/좌/우를 완전히 덮고 고정시킵니다. */
+        /* 전체 화면 래퍼: 스크롤 바운스 방지 및 높이 고정 */
         #final-event-page {
-            position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #FFF9F2; z-index: 9999; display: none;
+            overflow: hidden; 
+            overscroll-behavior: none;
         }
         
-        /* 실제 스크롤은 이 안에서만 부드럽게 발생합니다. */
+        /* 실제 스크롤이 발생하는 이너 컨테이너 */
         .f-page-inner {
-            position: absolute;
-            top: 0; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 393px; height: 100%;
             background-color: #FFF9F2;
             overflow-y: auto; overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* 아이폰 스크롤 부드럽게 */
-            padding-bottom: 140px; /* 고정 버튼에 컨텐츠가 가려지지 않도록 여백 확보 */
+            -webkit-overflow-scrolling: touch; 
+            padding-bottom: 160px; /* 하단 고정 버튼에 가려지지 않게 넉넉한 여백 확보 */
             box-sizing: border-box;
         }
         .f-page-inner::-webkit-scrollbar { display: none; }
 
         .f-top-bg-white { background-color: #FFFFFF; width: 100%; padding-bottom: 21px; }
 
+        /* 상단바: 6px 추가 띄움 (top padding 20->26) */
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
+        /* 타이틀: 숫자/문자 굵기 100% 일치 */
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
         .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; } 
         .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
@@ -126,6 +128,7 @@
 
         .f-graph-element-group { position: absolute; left: 71px; width: 286px; bottom: 0; transform: translateY(50%); display: flex; align-items: center; justify-content: flex-start; pointer-events: none; }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
+        /* 캡슐 안 숫자 미세 1px 우측 이동 적용 */
         .f-graph-badge { width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box; }
 
         .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
@@ -137,7 +140,7 @@
         .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
-        .f-share-container { background-color: transparent; padding: 70px 24px 20px; text-align: center; } 
+        .f-share-container { background-color: transparent; padding: 70px 24px 60px; text-align: center; } 
         .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 32px; } 
         .f-share-clover { color: #31B087; } 
         .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} 
@@ -146,16 +149,19 @@
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* ★ 하단 버튼을 뷰포트(브라우저 화면) 기준 맨 아래에 절대 고정시킵니다. (스크롤/주소창 영향 없음) ★ */
+        /* ★ 하단 고정 버튼을 뷰포트(브라우저 창) 전체에 대해 절대적으로 고정시킵니다. (높이 변동 버그 완벽 차단) */
         .f-bottom-fixed { 
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); 
+            position: fixed; 
+            bottom: 0; 
+            left: 50%; transform: translateX(-50%); 
             width: 100%; max-width: 393px; 
             background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
-            /* 하단 Safe Area 적용 (아이폰 홈바 겹침 방지) */
-            padding: 30px 24px calc(24px + env(safe-area-inset-bottom, 0px)); 
-            box-sizing: border-box; z-index: 4100; pointer-events: none;
+            /* 모바일 하단 제스쳐바(Safe Area) 여백 자동 적용 */
+            padding: 20px 24px calc(30px + env(safe-area-inset-bottom, 0px)); 
+            box-sizing: border-box; 
+            z-index: 5000; /* 모든 컨텐츠 위에 확실하게 띄움 */
         }
-        .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; pointer-events: auto; }
+        .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -377,12 +383,13 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 게임 영역에만 국한 (결과페이지는 JS 영향 안받음)
+// ★ 화면 리사이징: 게임 영역 컨트롤
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
     if (window.visualViewport) { screenHeight = window.visualViewport.height; }
     
+    // 게임 배경을 위해 바디 높이 동기화
     document.body.style.height = screenHeight + 'px';
 
     const stage = document.getElementById('game-stage');
@@ -509,9 +516,6 @@ function skipIntro() {
     }, 300);
 }
 
-// ==========================================
-// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘
-// ==========================================
 let touchOrder = []; 
 let activeTouches = { left: false, right: false };
 let kbdState = { left: false, right: false };
