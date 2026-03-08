@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 결과페이지 모바일 완벽 최적화</title>
+    <title>콩콩춘식 - 하단버튼 고정 및 공유기능 추가판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -78,29 +78,32 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 (게임 화면 영역 밖으로 분리)
+           ★ 최종 이벤트 결과 상세 페이지 
            ========================================== */
-        /* 게임 스케일(축소/크롭)의 영향을 받지 않도록 position: fixed 로 브라우저 창 전체를 덮습니다. */
         #final-event-page {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100%;
+            position: fixed; /* 브라우저 창 전체를 덮도록 고정 */
+            top: 0; left: 0; width: 100vw; height: 100%;
+            height: 100dvh; /* 모바일 동적 뷰포트 완벽 대응 */
             background-color: #FFF9F2; z-index: 9999; display: none;
-            overflow-y: auto; overflow-x: hidden; 
+            overflow: hidden; /* 내부 스크롤 래퍼를 위해 바깥은 숨김 */
         }
-        #final-event-page::-webkit-scrollbar { display: none; }
         
-        /* 모바일 비율을 유지하기 위한 이너 래퍼 */
+        /* 모바일 비율 유지 및 내부 스크롤을 위한 이너 래퍼 */
         .f-page-inner {
             position: relative;
-            width: 100%; max-width: 393px; min-height: 100%;
+            width: 100%; max-width: 393px; height: 100%;
             margin: 0 auto; background-color: #FFF9F2;
+            overflow-y: auto; overflow-x: hidden;
             padding-bottom: 100px; /* 하단 고정 버튼을 위한 여백 */
             box-sizing: border-box;
         }
+        .f-page-inner::-webkit-scrollbar { display: none; }
 
         .f-top-bg-white { background-color: #FFFFFF; width: 100%; padding-bottom: 21px; }
 
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        /* 네비게이션 SNS 아이콘에 URL 복사 함수 연결 */
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
@@ -125,7 +128,6 @@
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
         .f-graph-badge { width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box; }
 
-        /* 프로모션 섹션 1 교정: 마진탑 30px (전체 10px 추가 하단 이동) */
         .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
         .f-tag { display: inline-flex; align-items: center; justify-content: center; width: 136px; height: 37px; background: #4A3E35; color: #FFF; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box; } 
         .f-desc { font-size: 16px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
@@ -141,11 +143,12 @@
         .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} 
         .f-share-img { width: 200px; height: 206px; display: block; margin: 0 auto 30px; object-fit: contain; } 
         
+        /* 버튼 클릭 시 URL 복사 동작 연결 */
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
-        .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; }
+        .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* 하단 고정 버튼 (게임 스케일 영향 밖으로 분리되어 항상 스마트폰 바닥에 완벽 고정) */
-        .f-bottom-fixed { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 393px; background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); padding: 20px 24px 30px; box-sizing: border-box; z-index: 4100; }
+        /* ★ 하단 고정 버튼 수정: position absolute로 이너 래퍼 하단에 강제 접착. 모바일 주소창 이슈 원천 차단 ★ */
+        .f-bottom-fixed { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 393px; background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); padding: 20px 24px 30px; box-sizing: border-box; z-index: 4100; }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
 </head>
@@ -198,6 +201,7 @@
     
     <div id="canvas-container"><canvas id="canvas"></canvas></div>
 </div>
+
 <div id="final-event-page">
     <div class="f-page-inner">
         <div class="f-top-bg-white">
@@ -206,24 +210,24 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" style="margin-left: 20px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </span>
                 <span>이벤트</span>
-                <span class="f-sns-btn">
+                <span class="f-sns-btn" onclick="copyShareUrl()">
                     <img src="icon_sns.png" style="width:44px; height:44px; object-fit:contain; margin-right: 20px;" alt="share">
                 </span>
             </div>
             
             <div class="f-header">
                 <div class="f-main-title">
-                    <span class="f-highlight"><span id="f-total-rate-text">4.05%</span> 적금을</span><br>만들 수 있어요
+                    <span class="f-highlight"><span id="f-total-rate-text">3.85%</span> 적금을</span><br>만들 수 있어요
                 </div>
             </div>
             
             <div class="f-rate-box">
                 <div class="f-rate-col">
                     <div class="f-rate-label">기본 금리</div>
-                    <div class="f-rate-val">연 2.00%</div>
+                    <div class="f-rate-val">연 1.80%</div>
                 </div>
                 <div class="f-rate-col">
-                    <div class="f-rate-label">획득한 금리</div>
+                    <div class="f-rate-label">획득한 우대금리</div>
                     <div class="f-rate-val" id="f-earned-rate-text">연 2.05%</div>
                 </div>
             </div>
@@ -237,7 +241,7 @@
 
                     <div class="f-graph-element-group">
                         <div class="f-graph-line"></div>
-                        <div class="f-graph-badge" id="f-badge-rate">4.05%</div>
+                        <div class="f-graph-badge" id="f-badge-rate">3.85%</div>
                     </div>
                 </div>
             </div>
@@ -263,20 +267,57 @@
             <div class="f-share-title">친구에게<br><span class="f-share-clover">클로버</span> 선물하기</div>
             <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
             <img src="img_result3.png" class="f-share-img" alt="clover letter">
-            <button class="f-share-btn">
+            <button class="f-share-btn" onclick="copyShareUrl()">
                 <div class="f-share-btn-inner">
                     <img src="icon_sns.png" style="width:44px; height:44px; filter: brightness(0) invert(1);" alt="share"><span style="margin:0; padding:0;">친구에게 알려주기</span>
                 </div>
             </button>
         </div>
-    </div>
-    
-    <div class="f-bottom-fixed">
-        <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
+        
+        <div class="f-bottom-fixed">
+            <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
+        </div>
     </div>
 </div>
 
 <script>
+// ==========================================
+// ★ URL 복사 기능 구현
+// ==========================================
+function copyShareUrl() {
+    const shareUrl = 'https://scoke1313.github.io/kongkong/';
+    
+    // 모바일 환경 호환성을 위해 textarea 트릭 혼용
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('URL이 복사되었습니다.');
+        }).catch(err => {
+            fallbackCopyTextToClipboard(shareUrl);
+        });
+    } else {
+        fallbackCopyTextToClipboard(shareUrl);
+    }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    let textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        alert('URL이 복사되었습니다.');
+    } catch (err) {
+        console.error('Copy failed', err);
+    }
+    textArea.remove();
+}
+
+
 // ==========================================
 // ★ Web Audio API 
 // ==========================================
@@ -333,7 +374,7 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 게임 영역과 이벤트 페이지 분리 컨트롤
+// ★ 화면 리사이징
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
@@ -350,12 +391,12 @@ function resizeGame() {
     
     stage.style.left = '50%';
     
-    // 게임 영역 크롭/스케일 조정
     if (screenHeight >= scaledHeight) {
         stage.style.top = '50%';
         stage.style.bottom = 'auto';
         stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
         stage.style.transformOrigin = 'center center';
+        
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
     } else {
@@ -363,13 +404,15 @@ function resizeGame() {
         stage.style.bottom = '0px';
         stage.style.transform = `translate(-50%, 0) scale(${scale})`;
         stage.style.transformOrigin = 'bottom center';
+        
         let cropVirtualY = 852 - (screenHeight / scale);
         let safeTop = cropVirtualY + 5; 
+        
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
 
-    // ★ 이벤트 페이지는 scale의 영향을 받지 않으므로 height만 동기화 ★
+    // 결과 페이지 높이 리사이징 동기화
     const finalPage = document.getElementById('final-event-page');
     if (finalPage) finalPage.style.height = screenHeight + 'px';
 }
@@ -467,6 +510,9 @@ function skipIntro() {
     }, 300);
 }
 
+// ==========================================
+// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘
+// ==========================================
 let touchOrder = []; 
 let activeTouches = { left: false, right: false };
 let kbdState = { left: false, right: false };
@@ -574,7 +620,7 @@ function resetGame() {
 // ==========================================
 let earnedRateGlobal = 0;
 let totalRateGlobal = 0;
-const BASE_RATE = 2.00; 
+const BASE_RATE = 1.80; // 기본 금리 1.80% 변경
 
 function showResult() {
     if (isGameOver) return; 
@@ -583,15 +629,15 @@ function showResult() {
     resetInputState();
     playSfxGameOver();
 
-    // 거리 1/5 축소 표기
-    const finalDist = Math.floor(score * 0.002);
-    // 획득 금리도 축소된 거리에 비례 적용
+    // 거리 표기 1.5배 상승 적용 (0.002 -> 0.003)
+    const finalDist = Math.floor(score * 0.003);
+    
     earnedRateGlobal = (finalDist * 0.01) + (cloverCount * 0.1);
     totalRateGlobal = BASE_RATE + earnedRateGlobal;
 
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    // 결과 팝업창은 획득한 금리만 표기
+    // 팝업창에는 획득한 우대금리만 표기
     document.getElementById('res-rate-num').innerText = earnedRateGlobal.toFixed(2);
     
     const screen = document.getElementById('result-screen');
@@ -626,7 +672,8 @@ function showFinalEventPage() {
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
-    finalPage.scrollTop = 0; 
+    // 스크롤 최상단 리셋을 위해 약간의 딜레이
+    setTimeout(() => { document.querySelector('.f-page-inner').scrollTop = 0; }, 10);
 }
 
 function loadRive(fileName) {
@@ -711,7 +758,8 @@ function update(currentTime) {
         if (currentTotalY > maxReachY) { 
             maxReachY = currentTotalY; 
             score = maxReachY; 
-            document.getElementById('score-board').innerText = Math.floor(score * 0.002) + "m"; 
+            // 인게임 스코어 표기도 1.5배 증가 적용 (0.002 -> 0.003)
+            document.getElementById('score-board').innerText = Math.floor(score * 0.003) + "m"; 
         }
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
         
