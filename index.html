@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 거리 축소 & 디테일 최종 교정판</title>
+    <title>콩콩춘식 - 결과페이지 모바일 완벽 최적화</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -78,130 +78,74 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 
+           ★ 최종 이벤트 결과 상세 페이지 (게임 화면 영역 밖으로 분리)
            ========================================== */
+        /* 게임 스케일(축소/크롭)의 영향을 받지 않도록 position: fixed 로 브라우저 창 전체를 덮습니다. */
         #final-event-page {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #FFF9F2; z-index: 4000; display: none;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100%;
+            background-color: #FFF9F2; z-index: 9999; display: none;
             overflow-y: auto; overflow-x: hidden; 
-            padding-bottom: 100px; 
-            box-sizing: border-box;
         }
         #final-event-page::-webkit-scrollbar { display: none; }
-
-        /* 상단 영역 화이트 배경 래퍼 */
-        .f-top-bg-white {
-            background-color: #FFFFFF;
-            width: 100%;
-            padding-bottom: 21px; 
+        
+        /* 모바일 비율을 유지하기 위한 이너 래퍼 */
+        .f-page-inner {
+            position: relative;
+            width: 100%; max-width: 393px; min-height: 100%;
+            margin: 0 auto; background-color: #FFF9F2;
+            padding-bottom: 100px; /* 하단 고정 버튼을 위한 여백 */
+            box-sizing: border-box;
         }
 
-        /* 상단바 */
+        .f-top-bg-white { background-color: #FFFFFF; width: 100%; padding-bottom: 21px; }
+
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀 영역 교정: 하단 여백 30->20 (금리박스 이하 10px 상단 이동) */
-        .f-header { text-align: center; margin-top: 70px; margin-bottom: 20px; padding: 0 24px; box-sizing: border-box;}
-        .f-main-title { 
-            font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; 
-            -webkit-text-stroke: 0.5px currentColor; 
-        } 
+        .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
+        .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; } 
         .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
         
-        /* 금리 요약 박스 */
-        .f-rate-box { 
-            width: 333px; height: 86px; margin: 0 auto 40px;
-            background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; 
-        }
+        .f-rate-box { width: 333px; height: 86px; margin: 0 auto 40px; background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; }
         .f-rate-col { flex: 1; text-align: center; position: relative; }
         .f-rate-col:first-child::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background-color: #F0E2D3; }
         .f-rate-label { font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; }
         .f-rate-val { font-size: 22px; font-weight: 800; color: #333; line-height: 1; }
         
-        /* 그래프 영역 */
         .f-graph-area { text-align: center; margin-bottom: 50px; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 50px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
-        /* ★ 금리 비례 포지셔닝 래퍼 */
-        #graph-dynamic-wrapper {
-            position: absolute; left: 50%; transform: translateX(-50%);
-            width: 393px; height: 0; z-index: 2;
-        }
+        #graph-dynamic-wrapper { position: absolute; left: 50%; transform: translateX(-50%); width: 393px; height: 0; z-index: 2; }
 
-        /* 춘식이 */
-        .f-graph-char { 
-            position: absolute; 
-            width: 84px; height: 136px; 
-            left: 50%; margin-left: -42px; 
-            bottom: 1px; /* 선 바로 위에 착지 */
-            image-rendering: -webkit-optimize-contrast; 
-            image-rendering: crisp-edges;
-        }
+        .f-graph-char { position: absolute; width: 84px; height: 136px; left: 50%; margin-left: -42px; bottom: 1px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+        .f-graph-dust { position: absolute; width: 82px; height: 100px; left: 50%; margin-left: -41px; top: -1px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; z-index: -1; }
 
-        /* ★ 먼지 이펙트 (춘식이 바로 하단에 부착) ★ */
-        .f-graph-dust {
-            position: absolute;
-            width: 82px; height: 100px;
-            left: 50%; margin-left: -41px; /* 82의 절반 (중앙정렬) */
-            top: -1px; /* 춘식이가 끝나는 지점(bottom 1px)과 정확히 맞물림 */
-            image-rendering: -webkit-optimize-contrast; 
-            image-rendering: crisp-edges;
-            z-index: -1; /* 춘식이와 캡슐선보다 뒤에 배치 */
-        }
-
-        /* 선 & 캡슐 요소 그룹 */
-        .f-graph-element-group { 
-            position: absolute; 
-            left: 71px; width: 286px; 
-            bottom: 0; transform: translateY(50%);
-            display: flex; align-items: center; justify-content: flex-start;
-            pointer-events: none;
-        }
+        .f-graph-element-group { position: absolute; left: 71px; width: 286px; bottom: 0; transform: translateY(50%); display: flex; align-items: center; justify-content: flex-start; pointer-events: none; }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
-        .f-graph-badge { 
-            width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; 
-            font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center;
-            font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box;
-        }
+        .f-graph-badge { width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box; }
 
-        /* 프로모션 섹션 1 */
-        .f-promo-section { text-align: center; margin-top: 20px; margin-bottom: 46px; } 
-        .f-tag { 
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 136px; height: 37px; background: #4A3E35; color: #FFF; 
-            font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box;
-        } 
+        /* 프로모션 섹션 1 교정: 마진탑 30px (전체 10px 추가 하단 이동) */
+        .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
+        .f-tag { display: inline-flex; align-items: center; justify-content: center; width: 136px; height: 37px; background: #4A3E35; color: #FFF; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box; } 
         .f-desc { font-size: 16px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
         .f-promo-img { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
-        /* 프로모션 섹션 2 */
         .f-promo-section-2 { text-align: center; margin-bottom: 60px; }
         .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
-        /* 공유 섹션 */
         .f-share-container { background-color: transparent; padding: 70px 24px 60px; text-align: center; } 
         .f-share-title { font-size: 34px; font-weight: 800; line-height: 1.15; color: #222; margin-bottom: 32px; } 
         .f-share-clover { color: #31B087; } 
         .f-share-sub { font-size: 17px; color: #666; margin-bottom: 30px; line-height: 1.4; font-weight: 600;} 
-        
-        /* 공유 이미지 교정: 정확히 200x206 지정 */
         .f-share-img { width: 200px; height: 206px; display: block; margin: 0 auto 30px; object-fit: contain; } 
         
-        /* 공유 버튼 */
-        .f-share-btn { 
-            background: #555555; color: #FFF; width: 219px; height: 64px; border: none; 
-            border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; 
-        } 
-        .f-share-btn-inner {
-            display: flex; align-items: center; justify-content: center;
-            transform: translateX(-7px); 
-            gap: 0;
-        }
+        .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
+        .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; }
 
-        /* 하단 고정 버튼 */
-        .f-bottom-fixed { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 393px; background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); padding: 20px 24px 30px; box-sizing: border-box; z-index: 4100; }
+        /* 하단 고정 버튼 (게임 스케일 영향 밖으로 분리되어 항상 스마트폰 바닥에 완벽 고정) */
+        .f-bottom-fixed { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 393px; background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); padding: 20px 24px 30px; box-sizing: border-box; z-index: 4100; }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
 </head>
@@ -240,7 +184,22 @@
         </div>
     </div>
 
-    <div id="final-event-page">
+    <div id="ingame-ui">
+        <div id="btn-close-wrap" onclick="location.reload();"><img src="close.png" alt="close"></div>
+        <div class="header-ui-container">
+            <div id="score-board">0m</div>
+            <div class="rate-capsule"><img src="clover_s.png" style="width:25px;" alt="clover"><span id="rate-board">0</span></div>
+        </div>
+    </div>
+    
+    <div id="touch-zone"></div>
+    <div id="btn-left" class="controller ctrl-default"></div>
+    <div id="btn-right" class="controller ctrl-default"></div>
+    
+    <div id="canvas-container"><canvas id="canvas"></canvas></div>
+</div>
+<div id="final-event-page">
+    <div class="f-page-inner">
         <div class="f-top-bg-white">
             <div class="f-topbar">
                 <span class="f-close-btn" onclick="location.reload();">
@@ -274,7 +233,6 @@
                 
                 <div id="graph-dynamic-wrapper">
                     <img src="img_result_kongsik.png" class="f-graph-char" alt="kongsik">
-                    
                     <img src="img_result_dust.png" class="f-graph-dust" alt="dust effect">
 
                     <div class="f-graph-element-group">
@@ -311,24 +269,11 @@
                 </div>
             </button>
         </div>
-
-        <div class="f-bottom-fixed">
-            <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
-        </div>
-    </div>
-    <div id="ingame-ui">
-        <div id="btn-close-wrap" onclick="location.reload();"><img src="close.png" alt="close"></div>
-        <div class="header-ui-container">
-            <div id="score-board">0m</div>
-            <div class="rate-capsule"><img src="clover_s.png" style="width:25px;" alt="clover"><span id="rate-board">0</span></div>
-        </div>
     </div>
     
-    <div id="touch-zone"></div>
-    <div id="btn-left" class="controller ctrl-default"></div>
-    <div id="btn-right" class="controller ctrl-default"></div>
-    
-    <div id="canvas-container"><canvas id="canvas"></canvas></div>
+    <div class="f-bottom-fixed">
+        <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
+    </div>
 </div>
 
 <script>
@@ -388,7 +333,7 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 모바일 주소창 버그 완벽 대응
+// ★ 화면 리사이징: 게임 영역과 이벤트 페이지 분리 컨트롤
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
@@ -405,31 +350,28 @@ function resizeGame() {
     
     stage.style.left = '50%';
     
-    const fBottom = document.querySelector('.f-bottom-fixed');
-    if(fBottom) fBottom.style.transform = `translateX(-50%) scale(${scale})`;
-    
+    // 게임 영역 크롭/스케일 조정
     if (screenHeight >= scaledHeight) {
         stage.style.top = '50%';
         stage.style.bottom = 'auto';
         stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
         stage.style.transformOrigin = 'center center';
-        
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
-        if(fBottom) fBottom.style.bottom = '0px';
     } else {
         stage.style.top = 'auto';
         stage.style.bottom = '0px';
         stage.style.transform = `translate(-50%, 0) scale(${scale})`;
         stage.style.transformOrigin = 'bottom center';
-        
         let cropVirtualY = 852 - (screenHeight / scale);
         let safeTop = cropVirtualY + 5; 
-        
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
-        if(fBottom) fBottom.style.bottom = cropVirtualY + 'px';
     }
+
+    // ★ 이벤트 페이지는 scale의 영향을 받지 않으므로 height만 동기화 ★
+    const finalPage = document.getElementById('final-event-page');
+    if (finalPage) finalPage.style.height = screenHeight + 'px';
 }
 window.addEventListener('resize', () => setTimeout(resizeGame, 100)); 
 if (window.visualViewport) { window.visualViewport.addEventListener('resize', resizeGame); }
@@ -525,9 +467,6 @@ function skipIntro() {
     }, 300);
 }
 
-// ==========================================
-// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘
-// ==========================================
 let touchOrder = []; 
 let activeTouches = { left: false, right: false };
 let kbdState = { left: false, right: false };
@@ -644,16 +583,16 @@ function showResult() {
     resetInputState();
     playSfxGameOver();
 
-    // ★ 거리 표기 20% (1/5) 축소 적용
+    // 거리 1/5 축소 표기
     const finalDist = Math.floor(score * 0.002);
-    
-    // ★ 획득 금리 계산 역시 축소된 거리에 맞춰 비례 적용
+    // 획득 금리도 축소된 거리에 비례 적용
     earnedRateGlobal = (finalDist * 0.01) + (cloverCount * 0.1);
     totalRateGlobal = BASE_RATE + earnedRateGlobal;
 
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    document.getElementById('res-rate-num').innerText = totalRateGlobal.toFixed(2);
+    // 결과 팝업창은 획득한 금리만 표기
+    document.getElementById('res-rate-num').innerText = earnedRateGlobal.toFixed(2);
     
     const screen = document.getElementById('result-screen');
     screen.style.display = 'block';
@@ -734,7 +673,6 @@ function createPlatformData(yPos) {
 
 function initPlatforms() {
     score = 0; cloverCount = 0; currentY = 0; velocityY = 0; posX = 0; woodParticles = []; bgScrollY = 0; maxReachY = 0;
-    // 인게임 거리 표기도 축소 비율에 맞춰 수정
     document.getElementById('score-board').innerText = "0m"; document.getElementById('rate-board').innerText = "0";
     document.getElementById('game-stage').style.backgroundPositionY = '0px'; platforms = [];
     
@@ -773,7 +711,6 @@ function update(currentTime) {
         if (currentTotalY > maxReachY) { 
             maxReachY = currentTotalY; 
             score = maxReachY; 
-            // 0.002 배수로 축소하여 인게임 UI 스코어보드 업데이트
             document.getElementById('score-board').innerText = Math.floor(score * 0.002) + "m"; 
         }
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
