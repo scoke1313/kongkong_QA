@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 방향키 로직 적용(하단버튼 절대고정)</title>
+    <title>콩콩춘식 - 26주 적금 이자 계산 적용판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -79,14 +79,11 @@
 
         /* ==========================================
            ★ 최종 이벤트 결과 상세 페이지 
-           (사용자 요청: 방향키처럼 #game-stage 내부에 absolute로 완전히 종속시킴)
            ========================================== */
         #final-event-page {
-            position: absolute; /* fixed가 아닌 게임 스테이지 내부 absolute */
-            left: 0; width: 100%;
+            position: absolute; left: 0; width: 100%;
             background-color: #FFF9F2; z-index: 4000; display: none;
             overflow: hidden; 
-            /* top과 height는 브라우저 크롭 비율에 맞춰 JS에서 자동 세팅됩니다 */
         }
         
         .f-page-inner {
@@ -94,30 +91,28 @@
             background-color: #FFF9F2;
             overflow-y: auto; overflow-x: hidden;
             -webkit-overflow-scrolling: touch; 
-            padding-bottom: 140px; /* 고정 버튼을 위한 여백 */
+            padding-bottom: 140px; 
             box-sizing: border-box;
         }
         .f-page-inner::-webkit-scrollbar { display: none; }
 
         .f-top-bg-white { background-color: #FFFFFF; width: 100%; padding-bottom: 21px; }
 
-        /* 상단바 교정: 6px 추가 띄움 */
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀 교정: 숫자/문자 굵기 100% 일치 */
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
         .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; } 
         .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
         
-        .f-rate-box { width: 333px; height: 86px; margin: 0 auto 40px; background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; }
+        .f-rate-box { width: 333px; height: 86px; margin: 0 auto 25px; background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; }
         .f-rate-col { flex: 1; text-align: center; position: relative; }
         .f-rate-col:first-child::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background-color: #F0E2D3; }
         .f-rate-label { font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; }
         .f-rate-val { font-size: 22px; font-weight: 800; color: #333; line-height: 1; }
         
-        .f-graph-area { text-align: center; margin-bottom: 50px; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 50px; }
+        .f-graph-area { text-align: center; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 65px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
         #graph-dynamic-wrapper { position: absolute; left: 50%; transform: translateX(-50%); width: 393px; height: 0; z-index: 2; }
@@ -131,11 +126,14 @@
 
         .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
         .f-tag { display: inline-flex; align-items: center; justify-content: center; width: 136px; height: 37px; background: #4A3E35; color: #FFF; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box; } 
-        .f-desc { font-size: 16px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
+        
+        /* ★ 텍스트 폰트 사이즈 통일 (18px 로 적용) */
+        .f-desc { font-size: 18px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
         .f-promo-img { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
         .f-promo-section-2 { text-align: center; margin-bottom: 60px; }
-        .f-desc-2 { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
+        /* ★ 텍스트 폰트 사이즈 통일 (18px 로 적용) */
+        .f-desc-2 { font-size: 18px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
         .f-share-container { background-color: transparent; padding: 70px 24px 60px; text-align: center; } 
@@ -147,12 +145,10 @@
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* ★ 하단 버튼을 방향키(.controller)와 완벽히 동일한 구조인 게임 스테이지 내 absolute로 고정 ★ */
         .f-bottom-fixed { 
             position: absolute; 
             bottom: 0; left: 0; width: 100%; 
             background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
-            /* 10px 하향 조정 요청에 맞춰 하단 패딩을 20px로 적용 (원래 30px) */
             padding: 40px 24px 20px; 
             box-sizing: border-box; z-index: 5000; pointer-events: none;
         }
@@ -194,83 +190,6 @@
         </div>
     </div>
 
-    <div id="final-event-page">
-        <div class="f-page-inner">
-            <div class="f-top-bg-white">
-                <div class="f-topbar">
-                    <span class="f-close-btn" onclick="location.reload();">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" style="margin-left: 20px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </span>
-                    <span>이벤트</span>
-                    <span class="f-sns-btn" onclick="copyShareUrl()">
-                        <img src="icon_sns.png" style="width:44px; height:44px; object-fit:contain; margin-right: 20px;" alt="share">
-                    </span>
-                </div>
-                
-                <div class="f-header">
-                    <div class="f-main-title">
-                        <span class="f-highlight"><span id="f-total-rate-text">3.85%</span> 적금을</span><br>만들 수 있어요
-                    </div>
-                </div>
-                
-                <div class="f-rate-box">
-                    <div class="f-rate-col">
-                        <div class="f-rate-label">기본 금리</div>
-                        <div class="f-rate-val">연 1.80%</div>
-                    </div>
-                    <div class="f-rate-col">
-                        <div class="f-rate-label">획득한 우대금리</div>
-                        <div class="f-rate-val" id="f-earned-rate-text">연 2.05%</div>
-                    </div>
-                </div>
-                
-                <div class="f-graph-area">
-                    <img src="img_result0.png" class="f-graph-bg" alt="graph background">
-                    
-                    <div id="graph-dynamic-wrapper">
-                        <img src="img_result_kongsik.png" class="f-graph-char" alt="kongsik">
-                        <img src="img_result_dust.png" class="f-graph-dust" alt="dust effect">
-
-                        <div class="f-graph-element-group">
-                            <div class="f-graph-line"></div>
-                            <div class="f-graph-badge" id="f-badge-rate">3.85%</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="f-promo-section">
-                    <span class="f-tag">지금 통장을 만들면!</span>
-                    <div class="f-desc">
-                        이 금리로 30만원씩 매월 저축하면<br>
-                        약 <span id="f-interest-amount" style="color:#222; font-weight: inherit; font-size: inherit;">28,000</span>원의 이자를 받을 수 있어요
-                    </div>
-                    <img src="img_result1.png" class="f-promo-img" alt="bank card">
-                </div>
-                
-                <div class="f-promo-section-2">
-                    <div class="f-desc-2">
-                        매일 출석하면,<br>추가 금리 혜택까지 받을 수 있어요
-                    </div>
-                    <img src="img_result2.png" class="f-promo-img-2" alt="calendar">
-                </div>
-            </div>
-            
-            <div class="f-share-container">
-                <div class="f-share-title">친구에게<br><span class="f-share-clover">클로버</span> 선물하기</div>
-                <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
-                <img src="img_result3.png" class="f-share-img" alt="clover letter">
-                <button class="f-share-btn" onclick="copyShareUrl()">
-                    <div class="f-share-btn-inner">
-                        <img src="icon_sns.png" style="width:44px; height:44px; filter: brightness(0) invert(1);" alt="share"><span style="margin:0; padding:0;">친구에게 알려주기</span>
-                    </div>
-                </button>
-            </div>
-        </div>
-        
-        <div class="f-bottom-fixed">
-            <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
-        </div>
-    </div>
     <div id="ingame-ui">
         <div id="btn-close-wrap" onclick="location.reload();"><img src="close.png" alt="close"></div>
         <div class="header-ui-container">
@@ -284,6 +203,84 @@
     <div id="btn-right" class="controller ctrl-default"></div>
     
     <div id="canvas-container"><canvas id="canvas"></canvas></div>
+</div>
+
+<div id="final-event-page">
+    <div class="f-page-inner">
+        <div class="f-top-bg-white">
+            <div class="f-topbar">
+                <span class="f-close-btn" onclick="location.reload();">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" style="margin-left: 20px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </span>
+                <span>이벤트</span>
+                <span class="f-sns-btn" onclick="copyShareUrl()">
+                    <img src="icon_sns.png" style="width:44px; height:44px; object-fit:contain; margin-right: 20px;" alt="share">
+                </span>
+            </div>
+            
+            <div class="f-header">
+                <div class="f-main-title">
+                    <span class="f-highlight"><span id="f-total-rate-text">3.85%</span> 적금을</span><br>만들 수 있어요
+                </div>
+            </div>
+            
+            <div class="f-rate-box">
+                <div class="f-rate-col">
+                    <div class="f-rate-label">기본 금리</div>
+                    <div class="f-rate-val">연 1.80%</div>
+                </div>
+                <div class="f-rate-col">
+                    <div class="f-rate-label">획득한 우대금리</div>
+                    <div class="f-rate-val" id="f-earned-rate-text">연 2.05%</div>
+                </div>
+            </div>
+            
+            <div class="f-graph-area">
+                <img src="img_result0.png" class="f-graph-bg" alt="graph background">
+                
+                <div id="graph-dynamic-wrapper">
+                    <img src="img_result_kongsik.png" class="f-graph-char" alt="kongsik">
+                    <img src="img_result_dust.png" class="f-graph-dust" alt="dust effect">
+
+                    <div class="f-graph-element-group">
+                        <div class="f-graph-line"></div>
+                        <div class="f-graph-badge" id="f-badge-rate">3.85%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="f-promo-section">
+                <span class="f-tag">지금 통장을 만들면!</span>
+                <div class="f-desc">
+                    이 금리로 10만원씩 매주 저축하면<br>
+                    약 <span id="f-interest-amount" style="color:#222; font-weight: inherit; font-size: inherit;">0</span>원의 이자를 받을 수 있어요
+                </div>
+                <img src="img_result1.png" class="f-promo-img" alt="bank card">
+            </div>
+            
+            <div class="f-promo-section-2">
+                <div class="f-desc-2">
+                    매일 출석하면,<br>추가 금리 혜택까지 받을 수 있어요
+                </div>
+                <img src="img_result2.png" class="f-promo-img-2" alt="calendar">
+            </div>
+        </div>
+        
+        <div class="f-share-container">
+            <div class="f-share-title">친구에게<br><span class="f-share-clover">클로버</span> 선물하기</div>
+            <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
+            <img src="img_result3.png" class="f-share-img" alt="clover letter">
+            <button class="f-share-btn" onclick="copyShareUrl()">
+                <div class="f-share-btn-inner">
+                    <img src="icon_sns.png" style="width:44px; height:44px; filter: brightness(0) invert(1);" alt="share"><span style="margin:0; padding:0;">친구에게 알려주기</span>
+                </div>
+            </button>
+        </div>
+    </div>
+    
+    <div class="f-bottom-fixed">
+        <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
+    </div>
 </div>
 
 <script>
@@ -378,7 +375,7 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 게임 영역에 종속되도록 결과페이지 계산 추가
+// ★ 화면 리사이징: 게임 영역에만 국한
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
@@ -417,7 +414,6 @@ function resizeGame() {
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
 
-    // ★ 이벤트 페이지를 잘려나간 윗부분만큼 내리고, 높이를 눈에 보이는 만큼만 딱 맞춤 (100vh 버그 원천 차단)
     const finalPage = document.getElementById('final-event-page');
     if (finalPage) {
         finalPage.style.top = Math.max(0, cropVirtualY) + 'px';
@@ -621,7 +617,7 @@ function resetGame() {
 }
 
 // ==========================================
-// ★ 게임 결과 처리 및 금리 비례 정밀 포지셔닝 로직
+// ★ 게임 결과 처리 및 26주 적금 이자 계산 로직
 // ==========================================
 let earnedRateGlobal = 0;
 let totalRateGlobal = 0;
@@ -656,9 +652,11 @@ function showFinalEventPage() {
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
     document.getElementById('f-badge-rate').innerText = totalRateGlobal.toFixed(2) + '%';
 
-    const monthlyDeposit = 300000;
-    const months = 12;
-    const interest = Math.floor(monthlyDeposit * (months * (months + 1) / 2) * (totalRateGlobal / 100) / 12);
+    // ★ 26주 적금 이자 계산 (세전) ★
+    const weeklyDeposit = 100000; // 매주 10만원
+    const weeks = 26; // 26주
+    // 단리 이자 공식: 매주납입액 x (납입주수 x (납입주수+1) / 2) x (연이율 / 52)
+    const interest = Math.floor(weeklyDeposit * (weeks * (weeks + 1) / 2) * (totalRateGlobal / 100) / 52);
     document.getElementById('f-interest-amount').innerText = interest.toLocaleString();
 
     const maxRate = 7.0; 
