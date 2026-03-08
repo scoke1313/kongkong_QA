@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 클로버최종</title>
+    <title>콩콩춘식 - GPT버전</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -47,6 +47,15 @@
             height: 852px; 
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); 
+        }
+
+        /* 최적화 */
+        #dynamic-layer {
+            contain: layout style paint;
+        }
+
+        #canvas-container {
+            will-change: transform;
         }
 
         /* --- 인트로 화면 --- */
@@ -201,7 +210,7 @@
     <div id="btn-left" class="controller ctrl-default"></div>
     <div id="btn-right" class="controller ctrl-default"></div>
     
-    <div id="canvas-container"><canvas id="canvas"></canvas></div>
+    <div id="canvas-container"></div>
 </div>
 
 <script>
@@ -398,6 +407,9 @@ const PHYSICS = { gravity: 0.81, jumpPower: -18.9, superJumpPower: -45, moveSpee
 const PLATFORM_TYPES = { wood: ['wood_1.png', 'wood_2.png', 'wood_3.png'], block: ['block_1.png', 'block_2.png', 'block_3.png'] };
 const SIZES = [138, 98, 58];
 
+const $dynamicLayer = document.getElementById('dynamic-layer');
+const $canvasContainer = document.getElementById('canvas-container');
+
 let isPlaying = false, isSuperJumping = false, isGameOver = false;
 let currentY = 0, velocityY = 0, posX = 0, score = 0, cloverCount = 0, bgScrollY = 0;
 let maxReachY = 0;
@@ -409,6 +421,119 @@ const fpsInterval = 1000 / FPS;
 let accumulator = 0;
 
 let mainRive;
+
+// ==========================================
+// 캐릭터 Rive 최적화
+// ==========================================
+const charRive = {
+    air: null,
+    land: null,
+    active: ''
+};
+
+function setupCharacterRive() {
+    $canvasContainer.innerHTML = '';
+
+    const airCanvas = document.createElement('canvas');
+    const landCanvas = document.createElement('canvas');
+
+    airCanvas.id = 'canvas-air';
+    landCanvas.id = 'canvas-land';
+
+    const commonStyle = `
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        pointer-events:none;
+        display:none;
+    `;
+
+    airCanvas.style.cssText = commonStyle;
+    landCanvas.style.cssText = commonStyle;
+
+    $canvasContainer.appendChild(airCanvas);
+    $canvasContainer.appendChild(landCanvas);
+
+    charRive.air = new rive.Rive({
+        src: 'kongsik_ingame_air.riv',
+        canvas: airCanvas,
+        autoplay: true,
+        stateMachines: 'State Machine 1',
+        onLoad: () => charRive.air.resizeDrawingSurfaceToCanvas()
+    });
+
+    charRive.land = new rive.Rive({
+        src: 'kongsik_ingame_land.riv',
+        canvas: landCanvas,
+        autoplay: true,
+        stateMachines: 'State Machine 1',
+        onLoad: () => charRive.land.resizeDrawingSurfaceToCanvas()
+    });
+}
+
+function loadRive(fileName) {
+    const next = fileName === 'kongsik_ingame_land.riv' ? 'land' : 'air';
+    if (charRive.active === next) return;
+
+    document.getElementById('canvas-air').style.display = (next === 'air') ? 'block' : 'none';
+    document.getElementById('canvas-land').style.display = (next === 'land') ? 'block' : 'none';
+
+    charRive.active = next;
+}
+// ==========================================
+
+// ==========================================
+// 렌더링 노드 재사용 최적화
+// ==========================================
+const renderPool = {
+    platform: [],
+    mouse: [],
+    damage: [],
+    item: [],
+    chunk: []
+};
+
+const renderUsed = {
+    platform: 0,
+    mouse: 0,
+    damage: 0,
+    item: 0,
+    chunk: 0
+};
+
+function beginRenderFrame() {
+    renderUsed.platform = 0;
+    renderUsed.mouse = 0;
+    renderUsed.damage = 0;
+    renderUsed.item = 0;
+    renderUsed.chunk = 0;
+}
+
+function getRenderNode(type, className) {
+    const idx = renderUsed[type]++;
+    if (!renderPool[type][idx]) {
+        const el = document.createElement('div');
+        el.className = className;
+        el.style.left = '0px';
+        el.style.top = '0px';
+        renderPool[type][idx] = el;
+        $dynamicLayer.appendChild(el);
+    }
+    const el = renderPool[type][idx];
+    el.style.display = 'block';
+    return el;
+}
+
+function endRenderFrame() {
+    Object.keys(renderPool).forEach(type => {
+        for (let i = renderUsed[type]; i < renderPool[type].length; i++) {
+            renderPool[type][i].style.display = 'none';
+        }
+    });
+}
+// ==========================================
 
 let introRive = new rive.Rive({
     src: 'kongsik_intro.riv',
@@ -605,13 +730,6 @@ function showResult() {
     setTimeout(() => screen.classList.add('show'), 10);
 }
 
-function loadRive(fileName) {
-    if (lastLoadedFile === fileName) return;
-    lastLoadedFile = fileName;
-    if (riveInstance) riveInstance.cleanup();
-    riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
-}
-
 class WoodParticle {
     constructor(x, y) {
         this.x = x; this.y = y;
@@ -638,7 +756,6 @@ function createPlatformData(yPos) {
     let mouseProb = distM >= 200 ? 0.35 : 0.2; 
     let canHaveMouse = (width >= 98) && (rand < mouseProb); 
     
-    // ★ 클로버(아이템) 노출 확률 20% 하향 조정 (0.8 -> 0.84) ★
     let itemType = (!canHaveMouse && rand > 0.84) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
 
     if (canHaveMouse) {
@@ -806,34 +923,53 @@ function update(currentTime) {
     }
 
     if (isPlaying && !isGameOver) {
-        document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
-        
-        let htmlStr = '';
-        
-        woodParticles.forEach(p => { 
-            htmlStr += `<div class="wood-chunk" style="left:${p.x}px; top:${p.y}px; width:${p.size}px; height:${p.size}px; opacity:${p.life};"></div>`; 
+        $canvasContainer.style.transform = `translate3d(${posX}px, ${currentY}px, 0) scaleX(${currentScale})`;
+
+        beginRenderFrame();
+
+        woodParticles.forEach(p => {
+            const el = getRenderNode('chunk', 'wood-chunk');
+            el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+            el.style.width = `${p.size}px`;
+            el.style.height = `${p.size}px`;
+            el.style.opacity = p.life;
         });
-        
+
         platforms.forEach(p => {
             if (!p.isBroken) {
-                htmlStr += `<div class="platform" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:22px;background-image:url('${p.img}');"></div>`;
-                if (p.item && !p.itemCollected) { 
-                    htmlStr += `<div class="game-item" style="left:${p.x + p.w/2 - 25}px; top:${p.y - 55}px; background-image:url('item_${p.item}.png');"></div>`; 
+                const platformEl = getRenderNode('platform', 'platform');
+                platformEl.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+                platformEl.style.width = `${p.w}px`;
+                platformEl.style.height = `22px`;
+                platformEl.style.backgroundImage = `url('${p.img}')`;
+
+                if (p.item && !p.itemCollected) {
+                    const itemEl = getRenderNode('item', 'game-item');
+                    itemEl.style.transform = `translate3d(${p.x + p.w/2 - 25}px, ${p.y - 55}px, 0)`;
+                    itemEl.style.backgroundImage = `url('item_${p.item}.png')`;
                 }
             }
+
             p.mice.forEach(m => {
                 if (m.hit && m.hitTimer > 0) {
-                    let effImg = m.hitTimer > 10 ? 'effect_damage1.png' : (m.hitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
-                    htmlStr += `<div class="damage-effect" style="left:${p.x + m.x + 6}px; top:${p.y + m.yOffset - 10}px; background-image:url('${effImg}');"></div>`;
+                    const damageEl = getRenderNode('damage', 'damage-effect');
+                    const effImg = m.hitTimer > 10 ? 'effect_damage1.png' : (m.hitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
+                    damageEl.style.transform = `translate3d(${p.x + m.x + 6}px, ${p.y + m.yOffset - 10}px, 0)`;
+                    damageEl.style.backgroundImage = `url('${effImg}')`;
                 }
-                let mouseImg = m.hit ? 'mouse3.png' : (m.waitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
-                htmlStr += `<div class="mouse-enemy" style="left:${p.x + m.x}px; top:${p.y + m.yOffset}px; background-image:url('${mouseImg}'); transform:scaleX(${m.dir});"></div>`; 
+
+                const mouseEl = getRenderNode('mouse', 'mouse-enemy');
+                const mouseImg = m.hit ? 'mouse3.png' : (m.waitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
+                mouseEl.style.transform = `translate3d(${p.x + m.x}px, ${p.y + m.yOffset}px, 0) scaleX(${m.dir})`;
+                mouseEl.style.backgroundImage = `url('${mouseImg}')`;
             });
         });
-        
-        document.getElementById('dynamic-layer').innerHTML = htmlStr;
+
+        endRenderFrame();
     }
 }
+
+setupCharacterRive();
 </script>
 </body>
 </html>
