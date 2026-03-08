@@ -2,108 +2,61 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    
     <meta name="viewport" content="width=393, height=852, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <meta name="theme-color" content="#333333">
     
     <link rel="apple-touch-icon" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 모바일 하단 정렬 완벽 해결판</title>
+    <title>콩콩춘식 - 최종 이벤트 결과 페이지 추가</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
     <meta property="og:image" content="https://scoke1313.github.io/kongkong_QA/og_image.png">
     <meta property="og:url" content="https://scoke1313.github.io/kongkong_QA/">
     <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <style>
-        html, body { background-color: #333; margin: 0; padding: 0; }
+        /* 폰트 및 기본 설정 */
+        html, body { background-color: #333; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+        body { position: relative; width: 100vw; overflow: hidden; touch-action: none; user-select: none; }
         
-        body { 
-            position: relative; 
-            width: 100vw; 
-            /* height: 100vh/100dvh는 삭제하고 JS에서 동적으로 정확하게 제어합니다 */
-            overflow: hidden; 
-            touch-action: none; 
-            user-select: none; 
-        }
-        
-        #game-stage { 
-            position: absolute; 
-            width: 393px; 
-            height: 852px; 
-            background-color: #FFFDF5; 
-            background-size: 100% auto; 
-            background-repeat: repeat-y; 
-            overflow: hidden; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5); 
-        }
+        #game-stage { position: absolute; width: 393px; height: 852px; background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
 
-        #intro-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #FFFDF5; z-index: 2500; cursor: pointer;
-            opacity: 1; 
-            transition: opacity 0.3s ease-out; 
-        }
+        /* --- 기존 UI 스타일들 --- */
+        #intro-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #FFFDF5; z-index: 2500; cursor: pointer; opacity: 1; transition: opacity 0.3s ease-out; }
         #intro-canvas { width: 100%; height: 100%; pointer-events: none; }
-
-        #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
-        #main-rive-container { position: absolute; top: 0px; left: 0; width: 100%; height: 852px; pointer-events: none; }
+        #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% auto; background-position: bottom center; background-repeat: no-repeat; z-index: 2000; }
+        #main-rive-container { position: absolute; bottom: 0px; left: 0; width: 100%; height: 852px; pointer-events: none; }
         #main-canvas { width: 100%; height: 100%; }
+        #start-button { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 340px; height: 75px; background-image: url('btn_start.png'); background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001; }
         
-        #start-button {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-            width: 340px; height: 75px; background-image: url('btn_start.png'); background-size: contain; 
-            background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001;
-        }
-
-        #result-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); 
-            z-index: 3000; display: none;
-        }
-        
-        .result-card {
-            position: absolute; top: 50%; left: 50%; width: 348px; 
-            background: #FFF; border-radius: 22px; padding: 32px 24px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            box-sizing: border-box; transform: translate(-50%, calc(-50% + 30px));
-            opacity: 0; transition: all 0.4s ease-out;
-        }
+        /* 결과 팝업 */
+        #result-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 3000; display: none; }
+        .result-card { position: absolute; top: 50%; left: 50%; width: 348px; background: #FFF; border-radius: 22px; padding: 32px 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); box-sizing: border-box; transform: translate(-50%, calc(-50% + 30px)); opacity: 0; transition: all 0.4s ease-out; }
         #result-screen.show .result-card { transform: translate(-50%, -50%); opacity: 1; }
-        
         .res-title { font-size: 20px; font-weight: 600; color: #000; margin-bottom: 24px; } 
         .res-info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; }
         .res-info-label { display: flex; align-items: center; font-size: 16px; font-weight: 700; color: #333; }
         .res-info-label img { width: 22px; height: 22px; margin-right: 8px; }
         .res-info-value { font-size: 18px; font-weight: 800; color: #333; }
-
-        .res-total-value { 
-            display: flex; align-items: baseline; justify-content: center;
-            color: #333; margin: 20px 0 10px; font-family: 'Poetsen One', sans-serif; letter-spacing: -1px;
-        }
+        .res-total-value { display: flex; align-items: baseline; justify-content: center; color: #333; margin: 20px 0 10px; font-family: 'Poetsen One', sans-serif; letter-spacing: -1px; }
         #res-rate-num { font-size: 46px; }
         #res-rate-percent { font-size: 40px; margin-left: 2px; }
-
-        .result-buttons { 
-            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 10px; width: 348px; box-sizing: border-box;
-        }
-        .btn-res { height: 64px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; }
-        #btn-go-main { width: 132px; background: #2D2D2D; color: #FFF; } 
-        #btn-retry { width: 206px; background: #F68679; color: #FFF; } 
+        .result-buttons { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; width: 348px; box-sizing: border-box; }
+        .btn-res { height: 60px; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; width: 100%; }
+        #btn-confirm { background: #E86A63; color: #FFF; font-size: 20px; } 
+        .sub-buttons { display: flex; gap: 10px; width: 100%; }
+        #btn-go-main { flex: 1; background: #EBEBEB; color: #555; } 
+        #btn-retry { flex: 1.5; background: #2D2D2D; color: #FFF; } 
 
         #ingame-ui { display: none; }
         #btn-close-wrap { position: absolute; top: 16px; left: 4px; width: 44px; height: 44px; z-index: 1001; cursor: pointer; }
@@ -115,25 +68,60 @@
 
         #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
         canvas { width: 100%; height: 100%; }
-        
         .pickup-effect { position: absolute; width: 160px; height: 80px; background-image: url('effect_pickup.png'); background-size: contain; background-repeat: no-repeat; z-index: 120; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
         .gold-glow { filter: drop-shadow(0 0 15px gold); }
 
-        #touch-zone {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 900; display: none; cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .controller { 
-            position: absolute; width: 90px; height: 90px; 
-            background-size: contain; z-index: 950; display: none; 
-            pointer-events: none; 
-        }
+        #touch-zone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 900; display: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .controller { position: absolute; width: 90px; height: 90px; background-size: contain; z-index: 950; display: none; pointer-events: none; }
         #btn-left { left: 30px; bottom: 40px; transform: scaleX(-1); }
         #btn-right { right: 30px; bottom: 40px; }
         .ctrl-default { background-image: url('controller_Default.png'); }
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
+
+        /* ==========================================
+           ★ 새로 추가된 최종 이벤트 결과 상세 페이지 
+           ========================================== */
+        #final-event-page {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #FFFFFF; z-index: 4000; display: none;
+            overflow-y: auto; overflow-x: hidden; padding-bottom: 120px;
+            box-sizing: border-box;
+        }
+        /* 스크롤바 숨기기 */
+        #final-event-page::-webkit-scrollbar { display: none; }
+
+        .f-topbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; font-size: 18px; font-weight: 700; color: #222; }
+        .f-icon-btn { font-size: 24px; cursor: pointer; font-weight: 300; }
+        
+        .f-header { text-align: center; margin-top: 20px; margin-bottom: 30px; }
+        .f-main-title { font-size: 32px; font-weight: 800; line-height: 1.3; color: #222; }
+        .f-highlight { color: #E86A63; }
+        
+        .f-rate-box { background: #FFF9F2; border-radius: 16px; margin: 0 24px 40px; display: flex; padding: 20px 0; }
+        .f-rate-col { flex: 1; text-align: center; }
+        .f-rate-col:first-child { border-right: 1px solid #F0E2D3; }
+        .f-rate-label { font-size: 13px; color: #777; margin-bottom: 8px; font-weight: 600; }
+        .f-rate-val { font-size: 22px; font-weight: 800; color: #333; }
+        
+        .f-graph-area { text-align: center; margin-bottom: 40px; position: relative; }
+        .f-graph-char { width: 120px; margin-bottom: 10px; }
+        .f-graph-lines { margin: 0 40px; border-top: 2px dashed #E86A63; position: relative; }
+        .f-graph-badge { position: absolute; right: -20px; top: -14px; background: #E86A63; color: #FFF; padding: 6px 14px; border-radius: 20px; font-size: 16px; font-weight: 800; font-family: 'Poetsen One', sans-serif;}
+        
+        .f-promo-section { text-align: center; margin-bottom: 60px; }
+        .f-tag { display: inline-block; background: #4D453E; color: #FFF; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 20px; margin-bottom: 16px; }
+        .f-desc { font-size: 17px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
+        .f-mock-icon { width: 140px; height: 100px; background: #4DB38F; border-radius: 12px; margin: 0 auto 10px; position: relative; }
+        .f-mock-coin { position: absolute; right: -10px; bottom: -10px; width: 60px; height: 60px; background: #FFC033; border-radius: 50%; border: 3px solid #FFF; display:flex; align-items:center; justify-content:center; color:#FFF; font-size: 30px; font-weight:900;}
+        
+        .f-share-section { background: #FFFDF5; padding: 50px 24px; text-align: center; }
+        .f-share-title { font-size: 26px; font-weight: 800; line-height: 1.4; color: #222; margin-bottom: 12px; }
+        .f-share-clover { color: #45B573; }
+        .f-share-sub { font-size: 15px; color: #555; margin-bottom: 30px; line-height: 1.4; font-weight: 600;}
+        .f-share-btn { background: #4D453E; color: #FFF; width: 220px; height: 50px; border: none; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 8px;}
+        
+        .f-bottom-fixed { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 393px; background: linear-gradient(to top, #FFF 80%, rgba(255,255,255,0)); padding: 20px 24px 30px; box-sizing: border-box; }
+        .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -167,11 +155,67 @@
         </div>
         
         <div class="result-buttons">
-            <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인</button>
-            <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
+            <button class="btn-res" id="btn-confirm" onclick="showFinalEventPage()">금리 확정하기</button>
+            <div class="sub-buttons">
+                <button class="btn-res" id="btn-go-main" onclick="location.reload();">메인</button>
+                <button class="btn-res" id="btn-retry" onclick="resetGame();">재도전</button>
+            </div>
         </div>
     </div>
 
+    <div id="final-event-page">
+        <div class="f-topbar">
+            <span class="f-icon-btn" onclick="location.reload();">✕</span>
+            <span>이벤트</span>
+            <span class="f-icon-btn">🔗</span>
+        </div>
+        
+        <div class="f-header">
+            <div class="f-main-title">
+                <span class="f-highlight" id="f-total-rate-text">4.05%</span> 적금을<br>만들 수 있어요
+            </div>
+        </div>
+        
+        <div class="f-rate-box">
+            <div class="f-rate-col">
+                <div class="f-rate-label">기본 금리</div>
+                <div class="f-rate-val">연 2.00%</div>
+            </div>
+            <div class="f-rate-col">
+                <div class="f-rate-label">획득한 금리</div>
+                <div class="f-rate-val" id="f-earned-rate-text">연 2.05%</div>
+            </div>
+        </div>
+        
+        <div class="f-graph-area">
+            <img src="pogo_s.png" class="f-graph-char" alt="character">
+            <div class="f-graph-lines">
+                <div class="f-graph-badge" id="f-badge-rate">4.05%</div>
+            </div>
+        </div>
+        
+        <div class="f-promo-section">
+            <span class="f-tag">지금 통장을 만들면!</span>
+            <div class="f-desc">
+                이 금리로 30만원씩 매월 저축하면<br>
+                약 <b id="f-interest-amount" style="color:#E86A63;">28,000</b>원의 이자를 받을 수 있어요
+            </div>
+            <div class="f-mock-icon">
+                <div class="f-mock-coin">₩</div>
+            </div>
+        </div>
+        
+        <div class="f-share-section">
+            <div class="f-share-title">친구에게<br><span class="f-share-clover">클로버</span> 선물하기</div>
+            <div class="f-share-sub">친구에게 추천하면<br>추가 클로버를 받을 수 있어요</div>
+            <img src="item_clover.png" style="width: 100px; margin-bottom: 20px;">
+            <button class="f-share-btn">🔗 친구에게 알려주기</button>
+        </div>
+        
+        <div class="f-bottom-fixed">
+            <button class="f-submit-btn" onclick="location.reload();">이 금리로 통장 만들기</button>
+        </div>
+    </div>
     <div id="ingame-ui">
         <div id="btn-close-wrap" onclick="location.reload();"><img src="close.png" alt="close"></div>
         <div class="header-ui-container">
@@ -244,16 +288,12 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 모바일 주소창 버그 완벽 대응!
+// ★ 화면 리사이징: 모바일 주소창 버그 완벽 대응
 // ==========================================
 function resizeGame() {
-    // 1. 모바일 실제 시각적 뷰포트 높이 가져오기 (주소창 숨김/표시 완벽 대응)
     let screenHeight = window.innerHeight;
-    if (window.visualViewport) {
-        screenHeight = window.visualViewport.height;
-    }
+    if (window.visualViewport) { screenHeight = window.visualViewport.height; }
     
-    // 2. 바디 높이를 눈에 보이는 진짜 높이로 강제 고정! (이게 없으면 bottom:0 이 주소창 밑으로 파고듭니다)
     document.body.style.height = screenHeight + 'px';
 
     const stage = document.getElementById('game-stage');
@@ -265,8 +305,11 @@ function resizeGame() {
     
     stage.style.left = '50%';
     
+    // 최종 이벤트 페이지 반응형 (bottom fixed 버튼 처리)
+    const fBottom = document.querySelector('.f-bottom-fixed');
+    if(fBottom) fBottom.style.transform = `translateX(-50%) scale(${scale})`;
+    
     if (screenHeight >= scaledHeight) {
-        // 화면이 길 때: 중앙 정렬
         stage.style.top = '50%';
         stage.style.bottom = 'auto';
         stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
@@ -274,29 +317,27 @@ function resizeGame() {
         
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
+        if(fBottom) fBottom.style.bottom = '0px';
     } else {
-        // 화면이 짧을 때: 하단 고정, 상단 크롭, 상단 UI는 5px 여백 유지
         stage.style.top = 'auto';
         stage.style.bottom = '0px';
         stage.style.transform = `translate(-50%, 0) scale(${scale})`;
         stage.style.transformOrigin = 'bottom center';
         
-        // 짤려나간 상단 높이(크롭) 계산 후 5px 여백 추가
         let cropVirtualY = 852 - (screenHeight / scale);
         let safeTop = cropVirtualY + 5; 
         
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
+        if(fBottom) fBottom.style.bottom = cropVirtualY + 'px';
     }
 }
-window.addEventListener('resize', () => setTimeout(resizeGame, 100)); // 모바일 딜레이 대응
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', resizeGame);
-}
+window.addEventListener('resize', () => setTimeout(resizeGame, 100)); 
+if (window.visualViewport) { window.visualViewport.addEventListener('resize', resizeGame); }
 resizeGame();
 
 // ==========================================
-// ★ 캔버스 초고화질(DPR) 세팅 및 비율 유지 렌더링
+// ★ 캔버스 초고화질(DPR) 세팅 및 렌더링
 // ==========================================
 const dynCanvas = document.getElementById('dynamic-layer-canvas');
 const dynCtx = dynCanvas.getContext('2d');
@@ -386,7 +427,7 @@ function skipIntro() {
 }
 
 // ==========================================
-// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘 ★
+// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘
 // ==========================================
 let touchOrder = []; 
 let activeTouches = { left: false, right: false };
@@ -407,17 +448,12 @@ function syncInput() {
 function handleTouchChange(e) {
     if (e) e.preventDefault();
     if (isGameOver || !isPlaying) {
-        touchOrder = [];
-        activeTouches.left = false;
-        activeTouches.right = false;
-        syncInput();
-        return;
+        touchOrder = []; activeTouches.left = false; activeTouches.right = false; syncInput(); return;
     }
 
     const rect = touchZone.getBoundingClientRect();
     const mid = rect.width / 2;
-    let currentLeft = false;
-    let currentRight = false;
+    let currentLeft = false; let currentRight = false;
 
     for (let i = 0; i < e.touches.length; i++) {
         if (e.touches[i].clientX - rect.left < mid) currentLeft = true;
@@ -430,11 +466,8 @@ function handleTouchChange(e) {
     if (currentLeft && !touchOrder.includes('left')) touchOrder.push('left');
     if (currentRight && !touchOrder.includes('right')) touchOrder.push('right');
 
-    activeTouches.left = false;
-    activeTouches.right = false;
-    if (touchOrder.length > 0) {
-        activeTouches[touchOrder[touchOrder.length - 1]] = true;
-    }
+    activeTouches.left = false; activeTouches.right = false;
+    if (touchOrder.length > 0) { activeTouches[touchOrder[touchOrder.length - 1]] = true; }
 
     syncInput();
 }
@@ -447,19 +480,12 @@ touchZone.addEventListener('touchcancel', handleTouchChange, {passive: false});
 
 let isMouseDown = false;
 function handleMouse(e, isDown) {
-    if (!isDown) {
-        mouseState.left = false;
-        mouseState.right = false;
-    } else {
+    if (!isDown) { mouseState.left = false; mouseState.right = false; } 
+    else {
         if (isGameOver || !isPlaying) return;
         const rect = touchZone.getBoundingClientRect();
-        if (e.clientX - rect.left < rect.width / 2) {
-            mouseState.left = true;
-            mouseState.right = false;
-        } else {
-            mouseState.left = false;
-            mouseState.right = true;
-        }
+        if (e.clientX - rect.left < rect.width / 2) { mouseState.left = true; mouseState.right = false; } 
+        else { mouseState.left = false; mouseState.right = true; }
     }
     syncInput();
 }
@@ -468,26 +494,10 @@ touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handleMouse(e,
 touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handleMouse(e, false); });
 touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handleMouse(e, false); });
 
-window.addEventListener('keydown', (e) => { 
-    if(isGameOver) return;
-    if (e.code === 'ArrowLeft') kbdState.left = true;
-    if (e.code === 'ArrowRight') kbdState.right = true;
-    syncInput();
-});
-window.addEventListener('keyup', (e) => { 
-    if (e.code === 'ArrowLeft') kbdState.left = false;
-    if (e.code === 'ArrowRight') kbdState.right = false;
-    syncInput();
-});
+window.addEventListener('keydown', (e) => { if(isGameOver) return; if (e.code === 'ArrowLeft') kbdState.left = true; if (e.code === 'ArrowRight') kbdState.right = true; syncInput(); });
+window.addEventListener('keyup', (e) => { if (e.code === 'ArrowLeft') kbdState.left = false; if (e.code === 'ArrowRight') kbdState.right = false; syncInput(); });
 
-function resetInputState() {
-    keys = {};
-    touchOrder = [];
-    activeTouches = { left: false, right: false };
-    kbdState = { left: false, right: false };
-    mouseState = { left: false, right: false };
-    syncInput();
-}
+function resetInputState() { keys = {}; touchOrder = []; activeTouches = { left: false, right: false }; kbdState = { left: false, right: false }; mouseState = { left: false, right: false }; syncInput(); }
 
 function startGame() {
     initAudio();
@@ -509,39 +519,68 @@ function startGame() {
 }
 
 function resetGame() {
-    const screen = document.getElementById('result-screen');
-    screen.style.display = 'none';
-    screen.classList.remove('show');
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('result-screen').classList.remove('show');
     
     resetInputState();
-    isGameOver = false;
-    isPlaying = true;
-    isSuperJumping = false;
-    lastLoadedFile = "";
+    isGameOver = false; isPlaying = true; isSuperJumping = false; lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
     initPlatforms();
     
-    lastTime = performance.now(); 
-    accumulator = 0;
+    lastTime = performance.now(); accumulator = 0;
     requestAnimationFrame(update); 
 }
+
+// ==========================================
+// ★ 결과 페이지 및 이자 계산 로직 추가
+// ==========================================
+let earnedRateGlobal = 0;
+let totalRateGlobal = 0;
+const BASE_RATE = 2.00; // 기본 금리 고정
 
 function showResult() {
     if (isGameOver) return; 
     isPlaying = false; 
     isGameOver = true;
     resetInputState();
-    
     playSfxGameOver();
 
     const finalDist = Math.floor(score * 0.01);
-    const totalRate = (score * 0.0001) + (cloverCount * 0.1);
+    earnedRateGlobal = (score * 0.0001) + (cloverCount * 0.1);
+    totalRateGlobal = BASE_RATE + earnedRateGlobal;
+
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    document.getElementById('res-rate-num').innerText = totalRate.toFixed(2);
+    document.getElementById('res-rate-num').innerText = totalRateGlobal.toFixed(2);
+    
     const screen = document.getElementById('result-screen');
     screen.style.display = 'block';
     setTimeout(() => screen.classList.add('show'), 10);
+}
+
+function showFinalEventPage() {
+    // 팝업 닫고
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('result-screen').classList.remove('show');
+    
+    // 데이터 바인딩
+    document.getElementById('f-total-rate-text').innerText = totalRateGlobal.toFixed(2) + '%';
+    document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
+    document.getElementById('f-badge-rate').innerText = totalRateGlobal.toFixed(2) + '%';
+
+    // 단리 이자 계산 (월 30만원 납입, 12개월 기준)
+    // 적금 이자 공식: 매월납입액 x 납입월수 x (납입월수+1)/2 x (연이율/12)
+    const monthlyDeposit = 300000;
+    const months = 12;
+    const interest = Math.floor(monthlyDeposit * (months * (months + 1) / 2) * (totalRateGlobal / 100) / 12);
+    
+    // 이자 금액 천단위 콤마 찍기
+    document.getElementById('f-interest-amount').innerText = interest.toLocaleString();
+
+    // 새 페이지 열기 및 스크롤 최상단 초기화
+    const finalPage = document.getElementById('final-event-page');
+    finalPage.style.display = 'block';
+    finalPage.scrollTop = 0;
 }
 
 function loadRive(fileName) {
@@ -580,79 +619,53 @@ function createPlatformData(yPos) {
     let itemType = (!canHaveMouse && rand > 0.8) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
 
     if (canHaveMouse) {
-        mice.push({
-            x: Math.random() * (width - 72),
-            dir: Math.random() > 0.5 ? 1 : -1,
-            speed: (0.7 + Math.random() * 0.6) * speedMulti,
-            waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0, fell: false 
-        });
+        mice.push({ x: Math.random() * (width - 72), dir: Math.random() > 0.5 ? 1 : -1, speed: (0.7 + Math.random() * 0.6) * speedMulti, waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0, fell: false });
     }
 
-    return { 
-        x: Math.random() * (393 - width), y: yPos, baseY: yPos, w: width, h: 22, 
-        img: PLATFORM_TYPES[isBreakable?'wood':'block'][sizeIdx], 
-        isBreakable, mice: mice, 
-        item: itemType, itemCollected: false, type: moveType, speed: speedVar, verticalRange: 40 + Math.random() * 40, vPhase: Math.random() * Math.PI * 2, isBroken: false 
-    };
+    return { x: Math.random() * (393 - width), y: yPos, baseY: yPos, w: width, h: 22, img: PLATFORM_TYPES[isBreakable?'wood':'block'][sizeIdx], isBreakable, mice: mice, item: itemType, itemCollected: false, type: moveType, speed: speedVar, verticalRange: 40 + Math.random() * 40, vPhase: Math.random() * Math.PI * 2, isBroken: false };
 }
 
 function initPlatforms() {
     score = 0; cloverCount = 0; currentY = 0; velocityY = 0; posX = 0; woodParticles = []; bgScrollY = 0; maxReachY = 0;
-    document.getElementById('score-board').innerText = "0m";
-    document.getElementById('rate-board').innerText = "0";
-    document.getElementById('game-stage').style.backgroundPositionY = '0px';
-    platforms = [];
+    document.getElementById('score-board').innerText = "0m"; document.getElementById('rate-board').innerText = "0";
+    document.getElementById('game-stage').style.backgroundPositionY = '0px'; platforms = [];
     
     let lastY = 752; 
     for (let i = 0; i < 9; i++) { lastY -= (90 + Math.random() * 60); platforms.push(createPlatformData(lastY)); }
-    platforms.push({ 
-        x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, 
-        img: 'block_1.png', isBreakable: false, isBroken: false, 
-        type: 'normal', mice: [], item: null, itemCollected: false 
-    });
+    platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal', mice: [], item: null, itemCollected: false });
     loadRive('kongsik_ingame_air.riv');
 }
 
 function spawnPickupEffect(x, y) {
     const eff = document.createElement('div');
-    eff.className = 'pickup-effect';
-    eff.style.left = (x - 80) + 'px'; eff.style.top = (y - 40) + 'px';
+    eff.className = 'pickup-effect'; eff.style.left = (x - 80) + 'px'; eff.style.top = (y - 40) + 'px';
     document.getElementById('game-stage').appendChild(eff);
     setTimeout(() => { eff.style.transform = 'translateY(-80px)'; eff.style.opacity = '0'; }, 10);
     setTimeout(() => eff.remove(), 800);
 }
 
 function update(currentTime) {
-    if (!isPlaying) { 
-        if(!isGameOver) requestAnimationFrame(update); 
-        return; 
-    }
+    if (!isPlaying) { if(!isGameOver) requestAnimationFrame(update); return; }
 
     requestAnimationFrame(update);
-
     if (!currentTime) currentTime = performance.now();
-    let deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-
+    let deltaTime = currentTime - lastTime; lastTime = currentTime;
     if (deltaTime > 100) deltaTime = 100;
     accumulator += deltaTime;
 
     while (accumulator >= fpsInterval) {
-        
         if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
         if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
         
         posX = Math.max(-153, Math.min(153, posX));
         velocityY += isSuperJumping ? PHYSICS.gravity * 0.5 : PHYSICS.gravity;
-        currentY += velocityY;
-        mouseAnimFrame = (mouseAnimFrame + 1) % 20;
+        currentY += velocityY; mouseAnimFrame = (mouseAnimFrame + 1) % 20;
         
         let currentTotalY = -currentY + bgScrollY;
         if (currentTotalY > maxReachY) { maxReachY = currentTotalY; score = maxReachY; document.getElementById('score-board').innerText = Math.floor(score * 0.01) + "m"; }
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
         
-        woodParticles.forEach(p => p.update());
-        woodParticles = woodParticles.filter(p => p.life > 0);
+        woodParticles.forEach(p => p.update()); woodParticles = woodParticles.filter(p => p.life > 0);
         
         const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; 
         
@@ -663,29 +676,15 @@ function update(currentTime) {
                 
                 if (!p.isBroken) {
                     if (m.waitTimer > 0) m.waitTimer--;
-                    else { 
-                        if(!m.hit) { 
-                            m.x += m.dir * m.speed; 
-                            if (m.x <= 0 || m.x + 72 >= p.w) { m.dir *= -1; m.waitTimer = 30; } 
-                        } 
-                    }
+                    else { if(!m.hit) { m.x += m.dir * m.speed; if (m.x <= 0 || m.x + 72 >= p.w) { m.dir *= -1; m.waitTimer = 30; } } }
                     let mx = p.x + m.x, my = p.y - 35;
                     
                     if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
-                        playSfxHit();
-                        velocityY = -15; 
-                        let playerCenterX = charLeft + 25; 
-                        let ratCenterX = mx + 36;          
+                        playSfxHit(); velocityY = -15; let playerCenterX = charLeft + 25; let ratCenterX = mx + 36;          
                         if (playerCenterX < ratCenterX) posX -= 100; else posX += 100; 
                         m.hit = true; m.hitTimer = 15; m.stunTimer = 60; 
                     }
-                } else { 
-                    if (!m.fell) {
-                        playSfxMouseFall();
-                        m.fell = true;
-                    }
-                    m.vy += 0.6; m.yOffset += m.vy; 
-                }
+                } else { if (!m.fell) { playSfxMouseFall(); m.fell = true; } m.vy += 0.6; m.yOffset += m.vy; }
             });
 
             if (!p.isBroken) {
@@ -695,24 +694,13 @@ function update(currentTime) {
                     let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                     if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                         p.itemCollected = true;
-                        if (p.item === 'clover') { 
-                            playSfxClover();
-                            cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); 
-                        } 
-                        else if (p.item === 'gold') { 
-                            playSfxSuperJump();
-                            isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); 
-                        }
+                        if (p.item === 'clover') { playSfxClover(); cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
+                        else if (p.item === 'gold') { playSfxSuperJump(); isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
                     }
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
-                    playSfxJump();
-                    loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
-                    if (p.isBreakable) { 
-                        p.isBroken = true; 
-                        playSfxBreak(); 
-                        for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); 
-                    }
+                    playSfxJump(); loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
+                    if (p.isBreakable) { p.isBroken = true; playSfxBreak(); for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
                 }
             }
         });
@@ -720,65 +708,36 @@ function update(currentTime) {
         if (motionTimer > 0) { motionTimer--; if (motionTimer === 1) loadRive('kongsik_ingame_air.riv'); }
         if (currentY < -250) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
-            
             document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; 
-            
-            let distM = Math.floor(score * 0.01);
-            let extraGap = distM >= 200 ? Math.min((distM - 200) * 0.5, 80) : 0;
-
-            platforms.forEach(p => { 
-                p.y += diff; p.baseY += diff; 
-                if (p.y > 852 && p.baseY > 852) { 
-                    let topY = Math.min(...platforms.map(pl => pl.y)); 
-                    let newGap = 90 + extraGap + Math.random() * 60;
-                    Object.assign(p, createPlatformData(topY - newGap)); 
-                    p.isBroken = false; 
-                } 
+            let distM = Math.floor(score * 0.01); let extraGap = distM >= 200 ? Math.min((distM - 200) * 0.5, 80) : 0;
+            platforms.forEach(p => { p.y += diff; p.baseY += diff; 
+                if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); let newGap = 90 + extraGap + Math.random() * 60; Object.assign(p, createPlatformData(topY - newGap)); p.isBroken = false; } 
             });
             woodParticles.forEach(p => p.y += diff);
         }
         
         if (charFootY > 1050) showResult(); 
-
         accumulator -= fpsInterval;
     }
 
     if (isPlaying && !isGameOver) {
         document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
-        
         dynCtx.clearRect(0, 0, 393, 852);
-        
-        woodParticles.forEach(p => { 
-            dynCtx.fillStyle = `rgba(161, 136, 127, ${p.life})`;
-            dynCtx.fillRect(p.x, p.y, p.size, p.size);
-        });
+        woodParticles.forEach(p => { dynCtx.fillStyle = `rgba(161, 136, 127, ${p.life})`; dynCtx.fillRect(p.x, p.y, p.size, p.size); });
         
         platforms.forEach(p => {
             if (!p.isBroken) {
-                let pImg = loadedImages[p.img];
-                if(pImg) dynCtx.drawImage(pImg, p.x, p.y, p.w, 22); 
-                
-                if (p.item && !p.itemCollected) { 
-                    let iImg = loadedImages[`item_${p.item}.png`];
-                    if(iImg) drawImageContain(dynCtx, iImg, p.x + p.w/2 - 25, p.y - 55, 50, 50);
-                }
+                let pImg = loadedImages[p.img]; if(pImg) dynCtx.drawImage(pImg, p.x, p.y, p.w, 22); 
+                if (p.item && !p.itemCollected) { let iImg = loadedImages[`item_${p.item}.png`]; if(iImg) drawImageContain(dynCtx, iImg, p.x + p.w/2 - 25, p.y - 55, 50, 50); }
             }
             p.mice.forEach(m => {
                 if (m.hit && m.hitTimer > 0) {
                     let effImgName = m.hitTimer > 10 ? 'effect_damage1.png' : (m.hitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
-                    let effImg = loadedImages[effImgName];
-                    if(effImg) drawImageContain(dynCtx, effImg, p.x + m.x + 6, p.y + m.yOffset - 10, 60, 60);
+                    let effImg = loadedImages[effImgName]; if(effImg) drawImageContain(dynCtx, effImg, p.x + m.x + 6, p.y + m.yOffset - 10, 60, 60);
                 }
-                
                 let mouseImgName = m.hit ? 'mouse3.png' : (m.waitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
                 let mImg = loadedImages[mouseImgName];
-                if(mImg) {
-                    dynCtx.save();
-                    dynCtx.translate(Math.round(p.x + m.x + 36), Math.round(p.y + m.yOffset + 27)); 
-                    dynCtx.scale(m.dir, 1);
-                    drawImageContain(dynCtx, mImg, -36, -27, 72, 54);
-                    dynCtx.restore();
-                }
+                if(mImg) { dynCtx.save(); dynCtx.translate(Math.round(p.x + m.x + 36), Math.round(p.y + m.yOffset + 27)); dynCtx.scale(m.dir, 1); drawImageContain(dynCtx, mImg, -36, -27, 72, 54); dynCtx.restore(); }
             });
         });
     }
