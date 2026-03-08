@@ -1,5 +1,3 @@
-콩콩춘식 2.6 (가변사이즈)
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -17,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 2.6</title>
+    <title>콩콩춘식 - 앱아이콘/OG적용</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -128,12 +126,8 @@
         /* --- 게임 요소 & 컨트롤러 --- */
         #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
         canvas { width: 100%; height: 100%; }
-        .platform { position: absolute; background-size: 100% 100%; z-index: 5; transition: opacity 0.2s; pointer-events: none; }
-        .mouse-enemy { position: absolute; width: 72px; height: 54px; background-size: contain; background-repeat: no-repeat; z-index: 6; pointer-events: none; }
-        .damage-effect { position: absolute; width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; z-index: 5.5; pointer-events: none; }
-        .game-item { position: absolute; width: 50px; height: 50px; background-size: contain; background-repeat: no-repeat; z-index: 7; pointer-events: none; }
+        
         .pickup-effect { position: absolute; width: 160px; height: 80px; background-image: url('effect_pickup.png'); background-size: contain; background-repeat: no-repeat; z-index: 120; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
-        .wood-chunk { position: absolute; background-color: #A1887F; z-index: 4; pointer-events: none; border-radius: 1px; }
         .gold-glow { filter: drop-shadow(0 0 15px gold); }
 
         #touch-zone {
@@ -156,6 +150,8 @@
 <body>
 
 <div id="game-stage">
+    <canvas id="dynamic-layer-canvas" width="393" height="852" style="position: absolute; top: 0; left: 0; z-index: 5; pointer-events: none;"></canvas>
+
     <div id="intro-screen" onclick="skipIntro()" ontouchstart="skipIntro()">
         <canvas id="intro-canvas"></canvas>
     </div>
@@ -203,52 +199,188 @@
 </div>
 
 <script>
-// ★ 동적 UI 오프셋 제어 로직 추가 ★
+// ==========================================
+// ★ Web Audio API 
+// ==========================================
+let audioCtx;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSfxJump() {
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(250, t);
+    osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.045, t + 0.02); 
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc.start(t);
+    osc.stop(t + 0.15);
+}
+
+function playSfxClover() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+    osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.05); 
+    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function playSfxSuperJump() {
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(400, t);
+    osc.frequency.exponentialRampToValueAtTime(1500, t + 0.4);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.07, t + 0.05); 
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    osc.start(t);
+    osc.stop(t + 0.5);
+}
+
+function playSfxHit() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playSfxBreak() {
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const bufferSize = audioCtx.sampleRate * 0.15; 
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1500, t);
+    filter.frequency.exponentialRampToValueAtTime(200, t + 0.15);
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.08, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(t);
+
+    const osc = audioCtx.createOscillator();
+    const oscGain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    oscGain.gain.setValueAtTime(0.06, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc.connect(oscGain);
+    oscGain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.15);
+}
+
+function playSfxMouseFall() {
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.linearRampToValueAtTime(1200, t + 0.1); 
+    osc.frequency.exponentialRampToValueAtTime(200, t + 0.5); 
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.05, t + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    osc.start(t);
+    osc.stop(t + 0.5);
+}
+
+function playSfxGameOver() {
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(500, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.5); 
+    gain.gain.setValueAtTime(0.07, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    osc.start(t);
+    osc.stop(t + 0.5);
+}
+// ==========================================
+
 function resizeGame() {
     const stage = document.getElementById('game-stage');
     const closeBtn = document.getElementById('btn-close-wrap');
     const headerUI = document.querySelector('.header-ui-container');
     
     let scale = Math.min(window.innerWidth / 393, 1);
-    
-    stage.style.transformOrigin = 'top left';
-    stage.style.transform = `scale(${scale})`;
-    
-    let scaledWidth = 393 * scale;
+    let screenHeight = document.body.clientHeight || window.innerHeight;
     let scaledHeight = 852 * scale;
     
-    let leftPos = (window.innerWidth - scaledWidth) / 2;
-    stage.style.left = leftPos + 'px';
+    stage.style.left = '50%';
     
-    if (window.innerHeight > scaledHeight) {
-        let topPos = (window.innerHeight - scaledHeight) / 2;
-        stage.style.top = topPos + 'px';
-        
-        // 화면이 충분히 길어 크롭이 없을 땐 기본 위치 유지
+    if (screenHeight > scaledHeight) {
+        stage.style.top = '50%';
+        stage.style.bottom = 'auto';
+        stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        stage.style.transformOrigin = 'center center';
         if(closeBtn) closeBtn.style.top = '16px';
         if(headerUI) headerUI.style.top = '75px';
     } else {
-        let topPos = window.innerHeight - scaledHeight; // 상단이 잘린 만큼의 픽셀 (음수)
-        stage.style.top = topPos + 'px';
-        
-        // 잘려나간 픽셀을 게임 스케일(Scale) 좌표계로 변환 (역산)
-        let cropVirtualY = Math.abs(topPos) / scale;
-        // 실제 화면에서 물리적으로 상단 5px 띄우기 위한 좌표 추가 계산
-        let safeTop = cropVirtualY + (5 / scale);
-        
-        // 닫기버튼과 UI가 기본위치(16, 75)를 유지하면서, 잘려나갈 경우 safeTop으로 방어되도록 Math.max 적용
-        // 기존 닫기(16)와 헤더(75)의 간격인 59px은 그대로 유지함
+        stage.style.top = 'auto';
+        stage.style.bottom = '0px';
+        stage.style.transform = `translate(-50%, 0) scale(${scale})`;
+        stage.style.transformOrigin = 'bottom center';
+        let cropVirtualY = 852 - (screenHeight / scale);
+        let safeTop = cropVirtualY + 5; 
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
 }
 
-// 창 크기 변경 시 계산식 재호출
 window.addEventListener('resize', resizeGame);
-// 로드 시 즉각 실행
 resizeGame();
-// ===========================================
 
+// 렌더링 최적화를 위해 이미지를 메모리에 로드해둡니다.
+const loadedImages = {};
 const preloadImages = [
     'effect_damage1.png', 'effect_damage2.png', 'effect_damage3.png',
     'mouse3.png', 'mouse2.png', 'mouse_walk1.png', 'mouse_walk2.png',
@@ -256,7 +388,11 @@ const preloadImages = [
     'block_1.png', 'block_2.png', 'block_3.png', 'pogo_s.png',
     'controller_Default.png', 'controller_pressed.png'
 ];
-preloadImages.forEach(src => { const img = new Image(); img.src = src; });
+preloadImages.forEach(src => { 
+    const img = new Image(); 
+    img.src = src; 
+    loadedImages[src] = img; 
+});
 
 const PHYSICS = { gravity: 0.81, jumpPower: -18.9, superJumpPower: -45, moveSpeed: 7, motionHold: 10 };
 const PLATFORM_TYPES = { wood: ['wood_1.png', 'wood_2.png', 'wood_3.png'], block: ['block_1.png', 'block_2.png', 'block_3.png'] };
@@ -272,9 +408,6 @@ const FPS = 60;
 const fpsInterval = 1000 / FPS;
 let accumulator = 0;
 
-// ==========================================
-// 인트로 및 메인 Rive 설정
-// ==========================================
 let mainRive;
 
 let introRive = new rive.Rive({
@@ -310,21 +443,127 @@ function skipIntro() {
         }
     }, 300);
 }
+
+// ==========================================
+// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘 ★
+// ==========================================
+let touchOrder = []; 
+let activeTouches = { left: false, right: false };
+let kbdState = { left: false, right: false };
+let mouseState = { left: false, right: false };
+
+function syncInput() {
+    keys['ArrowLeft'] = kbdState.left || activeTouches.left || mouseState.left;
+    keys['ArrowRight'] = kbdState.right || activeTouches.right || mouseState.right;
+
+    if (keys['ArrowLeft']) document.getElementById('btn-left').classList.add('ctrl-pressed');
+    else document.getElementById('btn-left').classList.remove('ctrl-pressed');
+
+    if (keys['ArrowRight']) document.getElementById('btn-right').classList.add('ctrl-pressed');
+    else document.getElementById('btn-right').classList.remove('ctrl-pressed');
+}
+
+function handleTouchChange(e) {
+    if (e) e.preventDefault();
+    if (isGameOver || !isPlaying) {
+        touchOrder = [];
+        activeTouches.left = false;
+        activeTouches.right = false;
+        syncInput();
+        return;
+    }
+
+    const rect = touchZone.getBoundingClientRect();
+    const mid = rect.width / 2;
+
+    let currentLeft = false;
+    let currentRight = false;
+
+    for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].clientX - rect.left < mid) currentLeft = true;
+        else currentRight = true;
+    }
+
+    if (!currentLeft) touchOrder = touchOrder.filter(d => d !== 'left');
+    if (!currentRight) touchOrder = touchOrder.filter(d => d !== 'right');
+
+    if (currentLeft && !touchOrder.includes('left')) touchOrder.push('left');
+    if (currentRight && !touchOrder.includes('right')) touchOrder.push('right');
+
+    activeTouches.left = false;
+    activeTouches.right = false;
+    if (touchOrder.length > 0) {
+        activeTouches[touchOrder[touchOrder.length - 1]] = true;
+    }
+
+    syncInput();
+}
+
+const touchZone = document.getElementById('touch-zone');
+touchZone.addEventListener('touchstart', handleTouchChange, {passive: false});
+touchZone.addEventListener('touchmove', handleTouchChange, {passive: false});
+touchZone.addEventListener('touchend', handleTouchChange, {passive: false});
+touchZone.addEventListener('touchcancel', handleTouchChange, {passive: false});
+
+let isMouseDown = false;
+function handleMouse(e, isDown) {
+    if (!isDown) {
+        mouseState.left = false;
+        mouseState.right = false;
+    } else {
+        if (isGameOver || !isPlaying) return;
+        const rect = touchZone.getBoundingClientRect();
+        if (e.clientX - rect.left < rect.width / 2) {
+            mouseState.left = true;
+            mouseState.right = false;
+        } else {
+            mouseState.left = false;
+            mouseState.right = true;
+        }
+    }
+    syncInput();
+}
+touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handleMouse(e, true); });
+touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handleMouse(e, true); });
+touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handleMouse(e, false); });
+touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handleMouse(e, false); });
+
+window.addEventListener('keydown', (e) => { 
+    if(isGameOver) return;
+    if (e.code === 'ArrowLeft') kbdState.left = true;
+    if (e.code === 'ArrowRight') kbdState.right = true;
+    syncInput();
+});
+window.addEventListener('keyup', (e) => { 
+    if (e.code === 'ArrowLeft') kbdState.left = false;
+    if (e.code === 'ArrowRight') kbdState.right = false;
+    syncInput();
+});
+
+function resetInputState() {
+    keys = {};
+    touchOrder = [];
+    activeTouches = { left: false, right: false };
+    kbdState = { left: false, right: false };
+    mouseState = { left: false, right: false };
+    syncInput();
+}
 // ==========================================
 
 function startGame() {
+    initAudio();
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
-    
     document.getElementById('touch-zone').style.display = 'block'; 
     document.querySelectorAll('.controller').forEach(el => el.style.display = 'block');
-    
     document.getElementById('game-stage').style.backgroundImage = "url('bg_ingame.png')";
-    isPlaying = true; isGameOver = false;
-    keys = {}; 
-    initPlatforms();
     
+    isPlaying = true; isGameOver = false;
+    resetInputState();
+    initPlatforms();
+    playSfxJump(); 
+
     lastTime = performance.now(); 
     accumulator = 0;
     requestAnimationFrame(update);
@@ -334,14 +573,13 @@ function resetGame() {
     const screen = document.getElementById('result-screen');
     screen.style.display = 'none';
     screen.classList.remove('show');
-    keys = {};
+    
+    resetInputState();
     isGameOver = false;
     isPlaying = true;
     isSuperJumping = false;
     lastLoadedFile = "";
     document.getElementById('canvas-container').classList.remove('gold-glow');
-    document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    document.getElementById('btn-right').classList.remove('ctrl-pressed');
     initPlatforms();
     
     lastTime = performance.now(); 
@@ -350,11 +588,13 @@ function resetGame() {
 }
 
 function showResult() {
-    isPlaying = false; isGameOver = true;
-    keys = {}; 
-    document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    document.getElementById('btn-right').classList.remove('ctrl-pressed');
+    if (isGameOver) return; 
+    isPlaying = false; 
+    isGameOver = true;
+    resetInputState();
     
+    playSfxGameOver();
+
     const finalDist = Math.floor(score * 0.01);
     const totalRate = (score * 0.0001) + (cloverCount * 0.1);
     document.getElementById('res-distance').innerText = `${finalDist}m`;
@@ -371,67 +611,6 @@ function loadRive(fileName) {
     if (riveInstance) riveInstance.cleanup();
     riveInstance = new rive.Rive({ src: fileName, canvas: document.getElementById('canvas'), autoplay: true, stateMachines: 'State Machine 1', onLoad: () => riveInstance.resizeDrawingSurfaceToCanvas() });
 }
-
-window.addEventListener('keydown', (e) => { 
-    if(isGameOver) return;
-    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = true; document.getElementById('btn-left').classList.add('ctrl-pressed'); }
-    if (e.code === 'ArrowRight') { keys['ArrowRight'] = true; document.getElementById('btn-right').classList.add('ctrl-pressed'); }
-});
-window.addEventListener('keyup', (e) => { 
-    if (e.code === 'ArrowLeft') { keys['ArrowLeft'] = false; document.getElementById('btn-left').classList.remove('ctrl-pressed'); }
-    if (e.code === 'ArrowRight') { keys['ArrowRight'] = false; document.getElementById('btn-right').classList.remove('ctrl-pressed'); }
-});
-
-const touchZone = document.getElementById('touch-zone');
-
-const handlePointer = (e, isDown) => {
-    e.preventDefault();
-    if (isGameOver || !isPlaying) {
-        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-        return;
-    }
-    
-    if (!isDown) {
-        keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-        return;
-    }
-    
-    let clientX;
-    if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-    } else {
-        clientX = e.clientX;
-    }
-    
-    const rect = touchZone.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const mid = rect.width / 2;
-    
-    if (x < mid) {
-        keys['ArrowLeft'] = true; keys['ArrowRight'] = false;
-        document.getElementById('btn-left').classList.add('ctrl-pressed');
-        document.getElementById('btn-right').classList.remove('ctrl-pressed');
-    } else {
-        keys['ArrowRight'] = true; keys['ArrowLeft'] = false;
-        document.getElementById('btn-right').classList.add('ctrl-pressed');
-        document.getElementById('btn-left').classList.remove('ctrl-pressed');
-    }
-};
-
-touchZone.addEventListener('touchstart', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchmove', (e) => handlePointer(e, true), {passive: false});
-touchZone.addEventListener('touchend', (e) => handlePointer(e, false), {passive: false});
-touchZone.addEventListener('touchcancel', (e) => handlePointer(e, false), {passive: false});
-
-let isMouseDown = false;
-touchZone.addEventListener('mousedown', (e) => { isMouseDown = true; handlePointer(e, true); });
-touchZone.addEventListener('mousemove', (e) => { if (isMouseDown) handlePointer(e, true); });
-touchZone.addEventListener('mouseup', (e) => { isMouseDown = false; handlePointer(e, false); });
-touchZone.addEventListener('mouseleave', (e) => { isMouseDown = false; handlePointer(e, false); });
 
 class WoodParticle {
     constructor(x, y) {
@@ -450,14 +629,32 @@ function createPlatformData(yPos) {
     const width = SIZES[sizeIdx];
     let isBreakable = (rand < 0.15 + (Math.min(distM, 500) / 500) * 0.75);
     let moveType = rand < Math.min(0.5, 0.1 + (0.4 * (distM / 500))) ? (distM < 150 ? 'h' : (Math.random() > 0.5 ? 'h' : 'v')) : 'normal';
-    let canHaveMouse = (width >= 98) && (rand < 0.2); 
+    
+    let speedMulti = distM >= 200 ? Math.min(1.0 + (distM - 200) / 400, 2.5) : 1.0;
+    let moveDir = Math.random() > 0.5 ? 1 : -1;
+    let speedVar = (1.0 + Math.random() * 1.5) * moveDir * speedMulti;
+
+    let mice = [];
+    let mouseProb = distM >= 200 ? 0.35 : 0.2; 
+    let canHaveMouse = (width >= 98) && (rand < mouseProb); 
+    
+    // ★ 클로버 등장 확률 원래 10 수준으로 롤백 (rand > 0.8) ★
     let itemType = (!canHaveMouse && rand > 0.8) ? (Math.random() > 0.8 ? 'gold' : 'clover') : null;
+
+    if (canHaveMouse) {
+        mice.push({
+            x: Math.random() * (width - 72),
+            dir: Math.random() > 0.5 ? 1 : -1,
+            speed: (0.7 + Math.random() * 0.6) * speedMulti,
+            waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0, fell: false 
+        });
+    }
+
     return { 
         x: Math.random() * (393 - width), y: yPos, baseY: yPos, w: width, h: 22, 
         img: PLATFORM_TYPES[isBreakable?'wood':'block'][sizeIdx], 
-        isBreakable, hasMouse: canHaveMouse, mouseX: Math.random() * (width - 72), mouseDir: 1, mouseSpeed: 0.7 + Math.random() * 0.6, mouseWaitTimer: 0, mouseYOffset: -52, mouseVY: 0,
-        mouseHit: false, mouseHitTimer: 0, mouseStunTimer: 0, 
-        item: itemType, itemCollected: false, type: moveType, speed: 1.6, verticalRange: 40 + Math.random() * 40, vPhase: Math.random() * Math.PI * 2, isBroken: false 
+        isBreakable, mice: mice, 
+        item: itemType, itemCollected: false, type: moveType, speed: speedVar, verticalRange: 40 + Math.random() * 40, vPhase: Math.random() * Math.PI * 2, isBroken: false 
     };
 }
 
@@ -469,8 +666,12 @@ function initPlatforms() {
     platforms = [];
     
     let lastY = 752; 
-    for (let i = 0; i < 7; i++) { lastY -= (120 + Math.random() * 80); platforms.push(createPlatformData(lastY)); }
-    platforms.push({ x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, img: 'block_1.png', isBreakable: false, isBroken: false, type: 'normal' });
+    for (let i = 0; i < 9; i++) { lastY -= (90 + Math.random() * 60); platforms.push(createPlatformData(lastY)); }
+    platforms.push({ 
+        x: 393/2-69, y: 752, baseY: 752, w: 138, h: 22, 
+        img: 'block_1.png', isBreakable: false, isBroken: false, 
+        type: 'normal', mice: [], item: null, itemCollected: false 
+    });
     loadRive('kongsik_ingame_air.riv');
 }
 
@@ -502,31 +703,53 @@ function update(currentTime) {
         
         if (keys['ArrowLeft']) { posX -= PHYSICS.moveSpeed; currentScale = -1; }
         if (keys['ArrowRight']) { posX += PHYSICS.moveSpeed; currentScale = 1; }
+        
         posX = Math.max(-153, Math.min(153, posX));
         velocityY += isSuperJumping ? PHYSICS.gravity * 0.5 : PHYSICS.gravity;
         currentY += velocityY;
         mouseAnimFrame = (mouseAnimFrame + 1) % 20;
+        
         let currentTotalY = -currentY + bgScrollY;
         if (currentTotalY > maxReachY) { maxReachY = currentTotalY; score = maxReachY; document.getElementById('score-board').innerText = Math.floor(score * 0.01) + "m"; }
         if (isSuperJumping && velocityY >= 0) { isSuperJumping = false; document.getElementById('canvas-container').classList.remove('gold-glow'); }
+        
         woodParticles.forEach(p => p.update());
         woodParticles = woodParticles.filter(p => p.life > 0);
         
         const charFootY = 752 + currentY, charLeft = 393/2 + posX - 25; 
         
         platforms.forEach(p => {
-            if (p.hasMouse) {
-                if (p.mouseHitTimer > 0) p.mouseHitTimer--; 
-                if (p.mouseStunTimer > 0) { p.mouseStunTimer--; if (p.mouseStunTimer <= 0) p.mouseHit = false; }
+            p.mice.forEach(m => {
+                if (m.hitTimer > 0) m.hitTimer--; 
+                if (m.stunTimer > 0) { m.stunTimer--; if (m.stunTimer <= 0) m.hit = false; }
+                
                 if (!p.isBroken) {
-                    if (p.mouseWaitTimer > 0) p.mouseWaitTimer--;
-                    else { if(!p.mouseHit) { p.mouseX += p.mouseDir * p.mouseSpeed; if (p.mouseX <= 0 || p.mouseX + 72 >= p.w) { p.mouseDir *= -1; p.mouseWaitTimer = 30; } } }
-                    let mx = p.x + p.mouseX, my = p.y - 35;
-                    if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
-                        velocityY = -15; posX += (posX > (mx - p.x) ? 100 : -100); p.mouseHit = true; p.mouseHitTimer = 15; p.mouseStunTimer = 60; 
+                    if (m.waitTimer > 0) m.waitTimer--;
+                    else { 
+                        if(!m.hit) { 
+                            m.x += m.dir * m.speed; 
+                            if (m.x <= 0 || m.x + 72 >= p.w) { m.dir *= -1; m.waitTimer = 30; } 
+                        } 
                     }
-                } else { p.mouseVY += 0.6; p.mouseYOffset += p.mouseVY; }
-            }
+                    let mx = p.x + m.x, my = p.y - 35;
+                    
+                    if (!isSuperJumping && velocityY > 0 && charLeft + 35 > mx + 28 && charLeft + 15 < mx + 44 && charFootY > my + 10 && charFootY < my + 35) { 
+                        playSfxHit();
+                        velocityY = -15; 
+                        let playerCenterX = charLeft + 25; 
+                        let ratCenterX = mx + 36;          
+                        if (playerCenterX < ratCenterX) posX -= 100; else posX += 100; 
+                        m.hit = true; m.hitTimer = 15; m.stunTimer = 60; 
+                    }
+                } else { 
+                    if (!m.fell) {
+                        playSfxMouseFall();
+                        m.fell = true;
+                    }
+                    m.vy += 0.6; m.yOffset += m.vy; 
+                }
+            });
+
             if (!p.isBroken) {
                 if (p.type === 'h') { p.x += p.speed; if (p.x <= 0 || p.x + p.w >= 393) p.speed *= -1; } 
                 else if (p.type === 'v') { p.vPhase += 0.03; p.y = p.baseY + Math.sin(p.vPhase) * p.verticalRange; }
@@ -534,14 +757,24 @@ function update(currentTime) {
                     let ix = p.x + p.w/2 - 25, iy = p.y - 55;
                     if (charLeft + 45 > ix && charLeft + 5 < ix + 50 && charFootY > iy && charFootY < iy + 50) {
                         p.itemCollected = true;
-                        if (p.item === 'clover') { cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); } 
-                        else if (p.item === 'gold') { isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); }
+                        if (p.item === 'clover') { 
+                            playSfxClover();
+                            cloverCount++; document.getElementById('rate-board').innerText = `${cloverCount}`; spawnPickupEffect(ix + 25, iy); 
+                        } 
+                        else if (p.item === 'gold') { 
+                            playSfxSuperJump();
+                            isSuperJumping = true; velocityY = PHYSICS.superJumpPower; document.getElementById('canvas-container').classList.add('gold-glow'); loadRive('kongsik_ingame_air.riv'); 
+                        }
                     }
                 }
                 if (!isSuperJumping && velocityY > 0 && charLeft + 45 > p.x && charLeft + 5 < p.x + p.w && charFootY >= p.y && charFootY <= p.y + 15) { 
-                    
+                    playSfxJump();
                     loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
-                    if (p.isBreakable) { p.isBroken = true; for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); }
+                    if (p.isBreakable) { 
+                        p.isBroken = true; 
+                        playSfxBreak(); 
+                        for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); 
+                    }
                 }
             }
         });
@@ -551,7 +784,19 @@ function update(currentTime) {
             let diff = -250 - currentY; currentY = -250; bgScrollY += diff; 
             
             document.getElementById('game-stage').style.backgroundPositionY = (bgScrollY % 852) + 'px'; 
-            platforms.forEach(p => { p.y += diff; p.baseY += diff; if (p.y > 852 && p.baseY > 852) { let topY = Math.min(...platforms.map(pl => pl.y)); Object.assign(p, createPlatformData(topY - (120 + Math.random() * 80))); p.isBroken = false; } });
+            
+            let distM = Math.floor(score * 0.01);
+            let extraGap = distM >= 200 ? Math.min((distM - 200) * 0.5, 80) : 0;
+
+            platforms.forEach(p => { 
+                p.y += diff; p.baseY += diff; 
+                if (p.y > 852 && p.baseY > 852) { 
+                    let topY = Math.min(...platforms.map(pl => pl.y)); 
+                    let newGap = 90 + extraGap + Math.random() * 60;
+                    Object.assign(p, createPlatformData(topY - newGap)); 
+                    p.isBroken = false; 
+                } 
+            });
             woodParticles.forEach(p => p.y += diff);
         }
         
@@ -562,29 +807,49 @@ function update(currentTime) {
 
     if (isPlaying && !isGameOver) {
         document.getElementById('canvas-container').style.transform = `translate(${posX}px, ${currentY}px) scaleX(${currentScale})`;
-        const stage = document.getElementById('game-stage');
         
-        document.querySelectorAll('.platform, .mouse-enemy, .game-item, .wood-chunk, .damage-effect').forEach(el => el.remove());
+        // ★ 최적화: 매 프레임마다 DOM을 지우고 새로 생성하지 않고 Canvas에 바로 그립니다.
+        const dynCanvas = document.getElementById('dynamic-layer-canvas');
+        const dynCtx = dynCanvas.getContext('2d');
+        dynCtx.clearRect(0, 0, 393, 852);
         
-        woodParticles.forEach(p => { const chunk = document.createElement('div'); chunk.className = 'wood-chunk'; chunk.style.cssText = `left:${p.x}px; top:${p.y}px; width:${p.size}px; height:${p.size}px; opacity:${p.life};`; stage.appendChild(chunk); });
+        // 부서진 나무 조각 렌더링
+        woodParticles.forEach(p => { 
+            dynCtx.fillStyle = `rgba(161, 136, 127, ${p.life})`;
+            dynCtx.fillRect(p.x, p.y, p.size, p.size);
+        });
         
+        // 발판 및 아이템, 쥐돌이 렌더링
         platforms.forEach(p => {
             if (!p.isBroken) {
-                const d = document.createElement('div'); d.className = 'platform'; d.style.cssText = `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:22px;background-image:url('${p.img}');`; stage.appendChild(d);
-                if (p.item && !p.itemCollected) { const itemDiv = document.createElement('div'); itemDiv.className = 'game-item'; itemDiv.style.cssText = `left:${p.x + p.w/2 - 25}px; top:${p.y - 55}px; background-image:url('item_${p.item}.png');`; stage.appendChild(itemDiv); }
-            }
-            if (p.hasMouse) {
-                if (p.mouseHit && p.mouseHitTimer > 0) {
-                    const eff = document.createElement('div'); eff.className = 'damage-effect';
-                    let effImg = p.mouseHitTimer > 10 ? 'effect_damage1.png' : (p.mouseHitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
-                    eff.style.left = (p.x + p.mouseX + 6) + 'px'; eff.style.top = (p.y + p.mouseYOffset - 10) + 'px'; eff.style.backgroundImage = `url('${effImg}')`;
-                    stage.appendChild(eff);
+                let pImg = loadedImages[p.img];
+                if(pImg) dynCtx.drawImage(pImg, p.x, p.y, p.w, 22);
+                
+                if (p.item && !p.itemCollected) { 
+                    let iImg = loadedImages[`item_${p.item}.png`];
+                    if(iImg) dynCtx.drawImage(iImg, p.x + p.w/2 - 25, p.y - 55, 50, 50);
                 }
-                const m = document.createElement('div'); m.className = 'mouse-enemy'; 
-                let mouseImg = p.mouseHit ? 'mouse3.png' : (p.mouseWaitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
-                m.style.cssText = `left:${p.x + p.mouseX}px; top:${p.y + p.mouseYOffset}px; background-image:url('${mouseImg}'); transform:scaleX(${p.mouseDir});`; 
-                stage.appendChild(m); 
             }
+            p.mice.forEach(m => {
+                // 데미지 이펙트 렌더링
+                if (m.hit && m.hitTimer > 0) {
+                    let effImgName = m.hitTimer > 10 ? 'effect_damage1.png' : (m.hitTimer > 5 ? 'effect_damage2.png' : 'effect_damage3.png');
+                    let effImg = loadedImages[effImgName];
+                    if(effImg) dynCtx.drawImage(effImg, p.x + m.x + 6, p.y + m.yOffset - 10, 60, 60);
+                }
+                
+                // 쥐돌이 캐릭터 렌더링 (방향에 따른 반전 적용)
+                let mouseImgName = m.hit ? 'mouse3.png' : (m.waitTimer > 0 || p.isBroken ? 'mouse2.png' : `mouse_walk${mouseAnimFrame < 10 ? 1 : 2}.png`);
+                let mImg = loadedImages[mouseImgName];
+                if(mImg) {
+                    dynCtx.save();
+                    // 쥐돌이 중심점(36, 27)으로 이동하여 방향(m.dir)에 맞게 스케일 반전 후 그리기
+                    dynCtx.translate(p.x + m.x + 36, p.y + m.yOffset + 27); 
+                    dynCtx.scale(m.dir, 1);
+                    dynCtx.drawImage(mImg, -36, -27, 72, 54);
+                    dynCtx.restore();
+                }
+            });
         });
     }
 }
