@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 방향키 로직 적용(하단버튼 절대고정)</title>
+    <title>콩콩춘식 - 하단버튼 배경제거 완벽판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -79,14 +79,11 @@
 
         /* ==========================================
            ★ 최종 이벤트 결과 상세 페이지 
-           (사용자 요청: 방향키처럼 #game-stage 내부에 absolute로 완전히 종속시킴)
            ========================================== */
         #final-event-page {
-            position: absolute; /* fixed가 아닌 게임 스테이지 내부 absolute */
-            left: 0; width: 100%;
+            position: absolute; left: 0; width: 100%;
             background-color: #FFF9F2; z-index: 4000; display: none;
             overflow: hidden; 
-            /* top과 height는 브라우저 크롭 비율에 맞춰 JS에서 자동 세팅됩니다 */
         }
         
         .f-page-inner {
@@ -94,31 +91,27 @@
             background-color: #FFF9F2;
             overflow-y: auto; overflow-x: hidden;
             -webkit-overflow-scrolling: touch; 
-            padding-bottom: 140px; /* 고정 버튼을 위한 여백 */
+            padding-bottom: 140px; 
             box-sizing: border-box;
         }
         .f-page-inner::-webkit-scrollbar { display: none; }
 
         .f-top-bg-white { background-color: #FFFFFF; width: 100%; padding-bottom: 21px; }
 
-        /* 상단바 교정: 6px 추가 띄움 */
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀 교정: 숫자/문자 굵기 100% 일치 */
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
         .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; } 
         .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
         
-        /* ★ 그래프 영역 15px 상단 이동: 상단 마진 40->25px 축소 */
         .f-rate-box { width: 333px; height: 86px; margin: 0 auto 25px; background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; }
         .f-rate-col { flex: 1; text-align: center; position: relative; }
         .f-rate-col:first-child::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background-color: #F0E2D3; }
         .f-rate-label { font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; }
         .f-rate-val { font-size: 22px; font-weight: 800; color: #333; line-height: 1; }
         
-        /* ★ 그래프가 위로 올라간 만큼, 하단 컨텐츠와의 간격 보존을 위해 하단 마진 50->65px로 확장 */
         .f-graph-area { text-align: center; position: relative; padding: 0; width: 321px; height: 294px; margin: 0 auto 65px; }
         .f-graph-bg { width: 321px; height: 294px; display: block; }
         
@@ -133,12 +126,10 @@
 
         .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
         .f-tag { display: inline-flex; align-items: center; justify-content: center; width: 136px; height: 37px; background: #4A3E35; color: #FFF; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box; } 
-        /* ★ 폰트 사이즈 18px로 변경 */
         .f-desc { font-size: 18px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 24px;}
         .f-promo-img { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
         .f-promo-section-2 { text-align: center; margin-bottom: 60px; }
-        /* ★ 폰트 사이즈 18px로 변경 */
         .f-desc-2 { font-size: 18px; font-weight: 700; color: #222; line-height: 1.5; margin-bottom: 20px;}
         .f-promo-img-2 { width: 200px; height: auto; display: block; margin: 0 auto; } 
         
@@ -151,15 +142,16 @@
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* ★ 하단 버튼을 방향키(.controller)와 완벽히 동일한 구조인 게임 스테이지 내 absolute로 고정 ★ */
+        /* ★ 하단 버튼 배경 그라데이션 및 그림자 제거 적용 */
         .f-bottom-fixed { 
             position: absolute; 
             bottom: 0; left: 0; width: 100%; 
-            background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
+            background: transparent; /* 배경 그라데이션 완전 제거 */
+            box-shadow: none; /* 박스 그림자 제거 */
             padding: 40px 24px 20px; 
             box-sizing: border-box; z-index: 5000; pointer-events: none;
         }
-        .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; pointer-events: auto; }
+        .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; pointer-events: auto; box-shadow: none; /* 버튼 자체 그림자도 제거 */ }
     </style>
 </head>
 <body>
@@ -659,7 +651,6 @@ function showFinalEventPage() {
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
     document.getElementById('f-badge-rate').innerText = totalRateGlobal.toFixed(2) + '%';
 
-    // ★ 26주 적금 이자 계산 (세전) ★
     const weeklyDeposit = 100000;
     const weeks = 26; 
     const interest = Math.floor(weeklyDeposit * (weeks * (weeks + 1) / 2) * (totalRateGlobal / 100) / 52);
