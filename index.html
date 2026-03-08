@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단버튼 버그 완벽 해결판</title>
+    <title>콩콩춘식 - 하단버튼 10px이동</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -147,13 +147,15 @@
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
         /* ★ 하단 고정 버튼을 뷰포트(브라우저 창) 전체에 대해 절대적으로 고정시킵니다. (모바일 주소창 버그 완벽 차단) ★ */
-        .f-bottom-fixed { 
-            position: absolute; /* fixed 대신 absolute를 사용하여 부모 100% 높이의 최하단에 강제 접착 */
-            bottom: 0; left: 50%; transform: translateX(-50%); 
-            width: 100%; max-width: 393px; 
-            background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
-            padding: 30px 24px 40px; /* 넉넉한 40px 하단 여백 적용 */
-            box-sizing: border-box; z-index: 99999; 
+      .f-bottom-fixed { 
+    position: fixed; 
+    bottom: 0; left: 50%; transform: translateX(-50%); 
+    width: 100%; max-width: 393px; 
+    background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
+    /* 30px -> 40px로 수정하여 10px만큼 버튼을 아래로 이동 */
+    padding: 40px 24px calc(30px + env(safe-area-inset-bottom, 0px)); 
+    box-sizing: border-box; 
+    z-index: 5000;
         }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
