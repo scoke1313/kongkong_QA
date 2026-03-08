@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단 고정 완벽 해결 및 최종 디테일판</title>
+    <title>콩콩춘식 - 하단버튼 버그 완벽 해결판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -78,19 +78,19 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 
+           ★ 최종 이벤트 결과 상세 페이지 (모바일 100% 최적화)
            ========================================== */
-        /* 전체 화면 래퍼: 스크롤 바운스 방지 및 높이 고정 */
+        /* 전체 화면 래퍼: absolute 설정으로 브라우저 주소창 버그 원천 차단 */
         #final-event-page {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
             background-color: #FFF9F2; z-index: 9999; display: none;
             overflow: hidden; 
-            overscroll-behavior: none;
         }
         
         /* 실제 스크롤이 발생하는 이너 컨테이너 */
         .f-page-inner {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 393px; height: 100%;
             background-color: #FFF9F2;
             overflow-y: auto; overflow-x: hidden;
@@ -102,12 +102,10 @@
 
         .f-top-bg-white { background-color: #FFFFFF; width: 100%; padding-bottom: 21px; }
 
-        /* 상단바: 6px 추가 띄움 (top padding 20->26) */
         .f-topbar { position: relative; display: flex; justify-content: center; align-items: center; padding: 26px 0 20px 0; font-size: 17px; font-weight: 700; color: #222; }
         .f-close-btn { position: absolute; left: 0; bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
-        /* 타이틀: 숫자/문자 굵기 100% 일치 */
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
         .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; } 
         .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
@@ -128,7 +126,6 @@
 
         .f-graph-element-group { position: absolute; left: 71px; width: 286px; bottom: 0; transform: translateY(50%); display: flex; align-items: center; justify-content: flex-start; pointer-events: none; }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
-        /* 캡슐 안 숫자 미세 1px 우측 이동 적용 */
         .f-graph-badge { width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box; }
 
         .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
@@ -149,17 +146,14 @@
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* ★ 하단 고정 버튼을 뷰포트(브라우저 창) 전체에 대해 절대적으로 고정시킵니다. (높이 변동 버그 완벽 차단) */
+        /* ★ 하단 고정 버튼을 뷰포트(브라우저 창) 전체에 대해 절대적으로 고정시킵니다. (모바일 주소창 버그 완벽 차단) ★ */
         .f-bottom-fixed { 
-            position: fixed; 
-            bottom: 0; 
-            left: 50%; transform: translateX(-50%); 
+            position: absolute; /* fixed 대신 absolute를 사용하여 부모 100% 높이의 최하단에 강제 접착 */
+            bottom: 0; left: 50%; transform: translateX(-50%); 
             width: 100%; max-width: 393px; 
             background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
-            /* 모바일 하단 제스쳐바(Safe Area) 여백 자동 적용 */
-            padding: 20px 24px calc(30px + env(safe-area-inset-bottom, 0px)); 
-            box-sizing: border-box; 
-            z-index: 5000; /* 모든 컨텐츠 위에 확실하게 띄움 */
+            padding: 30px 24px 40px; /* 넉넉한 40px 하단 여백 적용 */
+            box-sizing: border-box; z-index: 99999; 
         }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
@@ -383,13 +377,13 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 게임 영역 컨트롤
+// ★ 화면 리사이징: 게임 영역에만 국한 (결과페이지는 JS 강제 제어)
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
     if (window.visualViewport) { screenHeight = window.visualViewport.height; }
     
-    // 게임 배경을 위해 바디 높이 동기화
+    // 바디 높이 동기화
     document.body.style.height = screenHeight + 'px';
 
     const stage = document.getElementById('game-stage');
@@ -421,6 +415,10 @@ function resizeGame() {
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
+
+    // 결과 페이지 높이 리사이징 동기화 (버튼 위치 고정을 위해 필수)
+    const finalPage = document.getElementById('final-event-page');
+    if (finalPage) finalPage.style.height = screenHeight + 'px';
 }
 window.addEventListener('resize', () => setTimeout(resizeGame, 100)); 
 if (window.visualViewport) { window.visualViewport.addEventListener('resize', resizeGame); }
@@ -516,6 +514,9 @@ function skipIntro() {
     }, 300);
 }
 
+// ==========================================
+// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘
+// ==========================================
 let touchOrder = []; 
 let activeTouches = { left: false, right: false };
 let kbdState = { left: false, right: false };
@@ -632,13 +633,15 @@ function showResult() {
     resetInputState();
     playSfxGameOver();
 
-    const finalDist = Math.floor(score * 0.003); // 1.5배 상향된 표기
+    // 거리 표기 1.5배 상향
+    const finalDist = Math.floor(score * 0.003); 
     
     earnedRateGlobal = (finalDist * 0.01) + (cloverCount * 0.1);
     totalRateGlobal = BASE_RATE + earnedRateGlobal;
 
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
+    // 팝업창에는 획득한 우대금리만 표기
     document.getElementById('res-rate-num').innerText = earnedRateGlobal.toFixed(2);
     
     const screen = document.getElementById('result-screen');
@@ -672,6 +675,9 @@ function showFinalEventPage() {
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
+    
+    // 페이지 오픈 시 즉각적인 높이 교정
+    resizeGame();
     setTimeout(() => { document.querySelector('.f-page-inner').scrollTop = 0; }, 10);
 }
 
