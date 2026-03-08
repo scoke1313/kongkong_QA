@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 하단버튼 버그 완벽 해결판</title>
+    <title>콩콩춘식 - 하단버튼 10px 하향 적용 완벽판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -79,24 +78,22 @@
         .ctrl-pressed { background-image: url('controller_pressed.png'); }
 
         /* ==========================================
-           ★ 최종 이벤트 결과 상세 페이지 (모바일 100% 최적화)
+           ★ 최종 이벤트 결과 상세 페이지 
            ========================================== */
-        /* 전체 화면 래퍼: absolute 설정으로 브라우저 주소창 버그 원천 차단 */
         #final-event-page {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #FFF9F2; z-index: 9999; display: none;
             overflow: hidden; 
+            overscroll-behavior: none;
         }
         
-        /* 실제 스크롤이 발생하는 이너 컨테이너 */
         .f-page-inner {
-            position: absolute;
-            top: 0; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 393px; height: 100%;
             background-color: #FFF9F2;
             overflow-y: auto; overflow-x: hidden;
             -webkit-overflow-scrolling: touch; 
-            padding-bottom: 160px; /* 하단 고정 버튼에 가려지지 않게 넉넉한 여백 확보 */
+            padding-bottom: 160px;
             box-sizing: border-box;
         }
         .f-page-inner::-webkit-scrollbar { display: none; }
@@ -147,14 +144,16 @@
         .f-share-btn { background: #555555; color: #FFF; width: 219px; height: 64px; border: none; border-radius: 32px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 0 auto; } 
         .f-share-btn-inner { display: flex; align-items: center; justify-content: center; transform: translateX(-7px); gap: 0; pointer-events: none; }
 
-        /* ★ 하단 고정 버튼을 뷰포트(브라우저 창) 전체에 대해 절대적으로 고정시킵니다. (모바일 주소창 버그 완벽 차단) ★ */
+        /* ★ 하단 버튼 10px 하단 이동 적용 (padding-bottom 30px -> 20px로 수정하여 시각적으로 10px 내림) */
         .f-bottom-fixed { 
-            position: absolute; /* fixed 대신 absolute를 사용하여 부모 100% 높이의 최하단에 강제 접착 */
-            bottom: 0; left: 50%; transform: translateX(-50%); 
+            position: fixed; 
+            bottom: 0; 
+            left: 50%; transform: translateX(-50%); 
             width: 100%; max-width: 393px; 
             background: linear-gradient(to top, #FFF9F2 80%, rgba(255,249,242,0)); 
-            padding: 30px 24px 40px; /* 넉넉한 40px 하단 여백 적용 */
-            box-sizing: border-box; z-index: 99999; 
+            padding: 30px 24px calc(20px + env(safe-area-inset-bottom, 0px)); 
+            box-sizing: border-box; 
+            z-index: 5000; 
         }
         .f-submit-btn { width: 100%; height: 64px; background: #222; color: #FFF; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
     </style>
@@ -378,13 +377,12 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 게임 영역에만 국한 (결과페이지는 JS 강제 제어)
+// ★ 화면 리사이징
 // ==========================================
 function resizeGame() {
     let screenHeight = window.innerHeight;
     if (window.visualViewport) { screenHeight = window.visualViewport.height; }
     
-    // 바디 높이 동기화
     document.body.style.height = screenHeight + 'px';
 
     const stage = document.getElementById('game-stage');
@@ -416,10 +414,6 @@ function resizeGame() {
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
         if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
-
-    // 결과 페이지 높이 리사이징 동기화 (버튼 위치 고정을 위해 필수)
-    const finalPage = document.getElementById('final-event-page');
-    if (finalPage) finalPage.style.height = screenHeight + 'px';
 }
 window.addEventListener('resize', () => setTimeout(resizeGame, 100)); 
 if (window.visualViewport) { window.visualViewport.addEventListener('resize', resizeGame); }
@@ -515,9 +509,6 @@ function skipIntro() {
     }, 300);
 }
 
-// ==========================================
-// ★ 최적화된 최신 터치 우선(Latest-Win) 스택 알고리즘
-// ==========================================
 let touchOrder = []; 
 let activeTouches = { left: false, right: false };
 let kbdState = { left: false, right: false };
@@ -620,12 +611,9 @@ function resetGame() {
     requestAnimationFrame(update); 
 }
 
-// ==========================================
-// ★ 게임 결과 처리 및 금리 비례 정밀 포지셔닝 로직
-// ==========================================
 let earnedRateGlobal = 0;
 let totalRateGlobal = 0;
-const BASE_RATE = 1.80; // 기본 금리 1.80%
+const BASE_RATE = 1.80; 
 
 function showResult() {
     if (isGameOver) return; 
@@ -634,7 +622,6 @@ function showResult() {
     resetInputState();
     playSfxGameOver();
 
-    // 거리 표기 1.5배 상향
     const finalDist = Math.floor(score * 0.003); 
     
     earnedRateGlobal = (finalDist * 0.01) + (cloverCount * 0.1);
@@ -642,7 +629,6 @@ function showResult() {
 
     document.getElementById('res-distance').innerText = `${finalDist}m`;
     document.getElementById('res-clover').innerText = `${cloverCount}개`;
-    // 팝업창에는 획득한 우대금리만 표기
     document.getElementById('res-rate-num').innerText = earnedRateGlobal.toFixed(2);
     
     const screen = document.getElementById('result-screen');
@@ -663,7 +649,6 @@ function showFinalEventPage() {
     const interest = Math.floor(monthlyDeposit * (months * (months + 1) / 2) * (totalRateGlobal / 100) / 12);
     document.getElementById('f-interest-amount').innerText = interest.toLocaleString();
 
-    // ★★★ 그래프 포지셔닝 수학적 계산 ★★★
     const maxRate = 7.0; 
     const dataAreaHeight = 247; 
     const baseBottomOffset = 6; 
@@ -676,9 +661,6 @@ function showFinalEventPage() {
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
-    
-    // 페이지 오픈 시 즉각적인 높이 교정
-    resizeGame();
     setTimeout(() => { document.querySelector('.f-page-inner').scrollTop = 0; }, 10);
 }
 
