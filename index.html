@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 사운드추가</title>
+    <title>콩콩춘식 - 앱아이콘/OG적용</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -202,7 +202,7 @@
 
 <script>
 // ==========================================
-// ★ Web Audio API (사운드 볼륨 70% 하향 & 신규 효과음 추가) ★
+// ★ Web Audio API (사운드 효과 개선) ★
 // ==========================================
 let audioCtx;
 
@@ -215,6 +215,7 @@ function initAudio() {
     }
 }
 
+// 1. 점프 소리 (볼륨 10% 증가 0.04 -> 0.045)
 function playSfxJump() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
@@ -228,7 +229,7 @@ function playSfxJump() {
     osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
     
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.04, t + 0.02); // 볼륨 0.06 -> 0.04
+    gain.gain.linearRampToValueAtTime(0.045, t + 0.02); // 살짝 더 크게
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
     
     osc.start(t);
@@ -246,7 +247,7 @@ function playSfxClover() {
     osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
     osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.05); 
     
-    gain.gain.setValueAtTime(0.07, audioCtx.currentTime); // 볼륨 0.1 -> 0.07
+    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
     
     osc.start();
@@ -266,7 +267,7 @@ function playSfxSuperJump() {
     osc.frequency.exponentialRampToValueAtTime(1500, t + 0.4);
     
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.07, t + 0.05); // 볼륨 0.1 -> 0.07
+    gain.gain.linearRampToValueAtTime(0.07, t + 0.05); 
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
     
     osc.start(t);
@@ -284,14 +285,14 @@ function playSfxHit() {
     osc.frequency.setValueAtTime(150, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
     
-    gain.gain.setValueAtTime(0.07, audioCtx.currentTime); // 볼륨 0.1 -> 0.07
+    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
     
     osc.start();
     osc.stop(audioCtx.currentTime + 0.2);
 }
 
-// ★ 신규: 나무 발판 부서지는 소리 (찌직!)
+// ★ 개선됨: 나무 발판 부서지는 소리 (짧고 날카롭게 '빠직!')
 function playSfxBreak() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
@@ -300,18 +301,18 @@ function playSfxBreak() {
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(100, t);
-    osc.frequency.exponentialRampToValueAtTime(20, t + 0.2);
+    osc.type = 'square'; // 경쾌하고 날카로운 느낌
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.1); 
 
-    gain.gain.setValueAtTime(0.07, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    gain.gain.setValueAtTime(0.05, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
 
     osc.start(t);
-    osc.stop(t + 0.2);
+    osc.stop(t + 0.1);
 }
 
-// ★ 신규: 쥐돌이 발판에서 떨어질 때 소리 (휘이잉~)
+// ★ 개선됨: 쥐돌이 떨어질 때 (귀엽게 '휘요용~')
 function playSfxMouseFall() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
@@ -321,18 +322,19 @@ function playSfxMouseFall() {
     gain.connect(audioCtx.destination);
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, t);
-    osc.frequency.exponentialRampToValueAtTime(100, t + 0.5);
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.linearRampToValueAtTime(1200, t + 0.1); // 음이 위로 꺾임
+    osc.frequency.exponentialRampToValueAtTime(200, t + 0.5); // 아래로 하강
 
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.04, t + 0.1);
+    gain.gain.linearRampToValueAtTime(0.05, t + 0.1);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
 
     osc.start(t);
     osc.stop(t + 0.5);
 }
 
-// ★ 신규: 춘식이 추락 게임오버 소리 (띠-로-리-로~)
+// ★ 개선됨: 게임오버 소리 (간결하게 '뾰로롱~')
 function playSfxGameOver() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
@@ -341,19 +343,15 @@ function playSfxGameOver() {
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(300, t);
-    osc.frequency.setValueAtTime(250, t + 0.2);
-    osc.frequency.setValueAtTime(200, t + 0.4);
-    osc.frequency.setValueAtTime(150, t + 0.6);
-    osc.frequency.exponentialRampToValueAtTime(50, t + 1.2);
+    osc.type = 'sine'; // 부드러운 사인파
+    osc.frequency.setValueAtTime(500, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.5); // 짧고 깔끔하게 하강
 
     gain.gain.setValueAtTime(0.07, t);
-    gain.gain.linearRampToValueAtTime(0.05, t + 0.6);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
 
     osc.start(t);
-    osc.stop(t + 1.2);
+    osc.stop(t + 0.5);
 }
 // ==========================================
 
@@ -494,12 +492,12 @@ function resetGame() {
 }
 
 function showResult() {
-    if (isGameOver) return; // 중복 실행 방지
+    if (isGameOver) return; 
     isPlaying = false; 
     isGameOver = true;
     keys = {}; 
     
-    playSfxGameOver(); // ★ 게임 오버 사운드 실행
+    playSfxGameOver();
 
     document.getElementById('btn-left').classList.remove('ctrl-pressed');
     document.getElementById('btn-right').classList.remove('ctrl-pressed');
@@ -614,7 +612,7 @@ function createPlatformData(yPos) {
             x: Math.random() * (width - 72),
             dir: Math.random() > 0.5 ? 1 : -1,
             speed: (0.7 + Math.random() * 0.6) * speedMulti,
-            waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0, fell: false // ★ 추락 체크용 fell 추가
+            waitTimer: 0, yOffset: -52, vy: 0, hit: false, hitTimer: 0, stunTimer: 0, fell: false 
         });
 
         if (distM >= 200 && width >= 138 && Math.random() > 0.5) {
@@ -723,7 +721,6 @@ function update(currentTime) {
                         m.hit = true; m.hitTimer = 15; m.stunTimer = 60; 
                     }
                 } else { 
-                    // ★ 발판이 부서져서 쥐돌이가 처음 추락할 때 사운드 재생 ★
                     if (!m.fell) {
                         playSfxMouseFall();
                         m.fell = true;
@@ -754,7 +751,7 @@ function update(currentTime) {
                     loadRive('kongsik_ingame_land.riv'); velocityY = PHYSICS.jumpPower; currentY = p.y - 752; motionTimer = PHYSICS.motionHold; 
                     if (p.isBreakable) { 
                         p.isBroken = true; 
-                        playSfxBreak(); // ★ 나무 발판 부서지는 소리 추가
+                        playSfxBreak(); 
                         for(let i=0; i<15; i++) woodParticles.push(new WoodParticle(p.x + p.w/2, p.y)); 
                     }
                 }
@@ -770,7 +767,7 @@ function update(currentTime) {
             woodParticles.forEach(p => p.y += diff);
         }
         
-        if (charFootY > 1050) showResult(); // 바닥으로 추락하면 게임오버
+        if (charFootY > 1050) showResult(); 
 
         accumulator -= fpsInterval;
     }
