@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 가변사이즈</title>
+    <title>콩콩춘식 - 가변사이즈2</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -29,11 +29,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
     <style>
-        /* ★ html, body 모두 배경을 #333으로 통일하여 흰색 여백 원천 차단 ★ */
+        /* ★ CSS 자동 정렬 요소 완전 제거. 절대 좌표 계산 방식으로 전환 ★ */
         html, body { background-color: #333; margin: 0; padding: 0; }
         
         body { 
-            position: relative; /* 절대 좌표 기준점 */
+            position: relative; 
             width: 100vw; 
             height: 100vh; 
             height: 100dvh; 
@@ -46,9 +46,9 @@
             position: absolute; 
             width: 393px; 
             height: 852px; 
-            left: 50%; /* 가로 중앙 정렬의 기준점 (JS에서 완성) */
             background-color: #FFFDF5; background-size: 100% auto; background-repeat: repeat-y; overflow: hidden; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); 
+            /* transform과 top, left는 모두 JS에서 동적 계산됨 */
         }
 
         /* --- 인트로 화면 --- */
@@ -203,32 +203,38 @@
 </div>
 
 <script>
-// ★ 수정됨: 확실한 위치 고정을 위한 절대 좌표(Position: Absolute) 기반 제어 로직 ★
+// ★ 완벽하게 픽셀을 강제로 계산하여 위치를 고정하는 방식 ★
 function resizeGame() {
     const stage = document.getElementById('game-stage');
     
-    // 너비 393을 기준으로 하되 최대 1배율을 넘지 않게 계산
+    // 1. 비율 계산 (최대 1배율 고정)
     let scale = Math.min(window.innerWidth / 393, 1);
     
-    // 디바이스 높이가 게임 높이(축소된 상태 포함)보다 큰 경우 (PC/태블릿 등)
-    if (window.innerHeight > 852 * scale) {
-        stage.style.top = '50%';
-        stage.style.bottom = 'auto';
-        // 가로/세로 모두 정중앙으로 이동시키면서 스케일 적용
-        stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        stage.style.transformOrigin = 'center center';
+    // 2. 스케일 기준점을 최상단 좌측으로 고정 (오차 없는 절대 위치 계산을 위함)
+    stage.style.transformOrigin = 'top left';
+    stage.style.transform = `scale(${scale})`;
+    
+    // 3. 실제 화면에서 렌더링될 크기 계산
+    let scaledWidth = 393 * scale;
+    let scaledHeight = 852 * scale;
+    
+    // 4. 가로 정중앙 픽셀 위치 계산 후 주입
+    let leftPos = (window.innerWidth - scaledWidth) / 2;
+    stage.style.left = leftPos + 'px';
+    
+    // 5. 세로 위치 계산 로직 (높이가 남으면 중앙, 모자라면 하단 고정 & 상단 크롭)
+    if (window.innerHeight > scaledHeight) {
+        let topPos = (window.innerHeight - scaledHeight) / 2;
+        stage.style.top = topPos + 'px';
     } else {
-        // 높이가 부족한 모바일 기기: 하단 기준 고정
-        stage.style.top = 'auto';
-        stage.style.bottom = '0px';
-        // 가로 중앙 정렬은 translateX(-50%)로 맞추고 스케일 적용
-        stage.style.transform = `translateX(-50%) scale(${scale})`;
-        stage.style.transformOrigin = 'bottom center';
+        let topPos = window.innerHeight - scaledHeight;
+        stage.style.top = topPos + 'px';
     }
 }
 
-// 화면 사이즈 변경 시마다 작동
+// 창 크기 변경 시 계산식 재호출
 window.addEventListener('resize', resizeGame);
+// 로드 시 즉각 실행
 resizeGame();
 // ===========================================
 
