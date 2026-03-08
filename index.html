@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 최종 완벽판 (리브 모션 싱크 1.5초 맞춤)</title>
+    <title>콩콩춘식 - 최종 완벽판 (0.6초 대기 후 착지+바로점프)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -721,12 +721,12 @@ function showFinalEventPage() {
     
     setTimeout(() => { document.querySelector('.f-page-inner').scrollTop = 0; }, 10);
 
-    // ★ 2. Rive 불러오기 
+    // ★ 2. Rive 불러오기 (비율 유지, 하단 중앙 정렬)
     if (resultRive) resultRive.cleanup();
     resultRive = new rive.Rive({
         src: 'kongsik_result.riv',
         canvas: document.getElementById('result-char-canvas'),
-        autoplay: false, // ★ 자동재생 끄기 (1.5초 대기 후 재생)
+        autoplay: false, // ★ 자동재생 끄기 (0.6초 대기 후 재생)
         stateMachines: 'State Machine 1',
         layout: new rive.Layout({
             fit: rive.Fit.contain,
@@ -735,16 +735,16 @@ function showFinalEventPage() {
         onLoad: () => {
             resultRive.resizeDrawingSurfaceToCanvas();
             
-            // ★ 3. 로드 완료 후 1.5초 대기하고 애니메이션 시퀀스 시작
+            // ★ 3. 로드 완료 후 0.6초 대기하고 애니메이션 시퀀스 시작
             setTimeout(() => {
-                // ★ 대기 끝! 리브 모션 재생 시작
+                // ★ 0.6초 대기 끝! 리브 모션 재생 시작
                 resultRive.play('State Machine 1');
 
-                // [1단계] 아래로 빠르게 착지 (0.2초)
-                dynamicWrapper.style.transition = 'bottom 0.2s cubic-bezier(0.55, 0.085, 0.68, 0.53)'; 
+                // [1단계] 위에서부터 느리게 착지 (0.5초 ease-in)
+                dynamicWrapper.style.transition = 'bottom 0.5s ease-in'; 
                 dynamicWrapper.style.bottom = baseBottomOffset + 'px';
                 
-                // [2단계] 착지 후 살짝 눌렸다가 튀어오름 (1.5초) + 숫자 촤라락
+                // [2단계] 착지하는 순간(0.5초 뒤) 딜레이 없이 바로 뾰오옹 튀어오름 (1.5초) + 숫자 촤라락
                 setTimeout(() => {
                     dynamicWrapper.style.transition = 'bottom 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     dynamicWrapper.style.bottom = finalBottomPx + 'px';
@@ -757,8 +757,8 @@ function showFinalEventPage() {
                         dustImg.style.opacity = '1';
                     }, 1000);
                     
-                }, 250); // 착지하는 시간(200ms) + 눌리는 대기시간(50ms)
-            }, 1500); // ★ 결과창 진입 후 1.5초 대기
+                }, 500); // ★ 1단계 착지 시간(500ms)과 동일하게 맞춤 (기다림 없이 튀어오름)
+            }, 600); // ★ 결과창 진입 후 0.6초 대기
         }
     });
 }
