@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 해상도 최적화 & 반응형 복구</title>
+    <title>콩콩춘식 - 모바일 하단 정렬 완벽 해결판</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -34,8 +34,7 @@
         body { 
             position: relative; 
             width: 100vw; 
-            height: 100vh; 
-            height: 100dvh; 
+            /* height: 100vh/100dvh는 삭제하고 JS에서 동적으로 정확하게 제어합니다 */
             overflow: hidden; 
             touch-action: none; 
             user-select: none; 
@@ -60,7 +59,6 @@
         }
         #intro-canvas { width: 100%; height: 100%; pointer-events: none; }
 
-        /* 메인 화면 하단 정렬 이슈 복구 (background-size: 100% 100% 원복) */
         #main-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg_main.png'); background-size: 100% 100%; z-index: 2000; }
         #main-rive-container { position: absolute; top: 0px; left: 0; width: 100%; height: 852px; pointer-events: none; }
         #main-canvas { width: 100%; height: 100%; }
@@ -246,15 +244,23 @@ function playSfxGameOver() {
 }
 
 // ==========================================
-// ★ 화면 리사이징: 사용자 요청 사항 완벽 반영
+// ★ 화면 리사이징: 모바일 주소창 버그 완벽 대응!
 // ==========================================
 function resizeGame() {
+    // 1. 모바일 실제 시각적 뷰포트 높이 가져오기 (주소창 숨김/표시 완벽 대응)
+    let screenHeight = window.innerHeight;
+    if (window.visualViewport) {
+        screenHeight = window.visualViewport.height;
+    }
+    
+    // 2. 바디 높이를 눈에 보이는 진짜 높이로 강제 고정! (이게 없으면 bottom:0 이 주소창 밑으로 파고듭니다)
+    document.body.style.height = screenHeight + 'px';
+
     const stage = document.getElementById('game-stage');
     const closeBtn = document.getElementById('btn-close-wrap');
     const headerUI = document.querySelector('.header-ui-container');
     
     let scale = Math.min(window.innerWidth / 393, 1);
-    let screenHeight = window.innerHeight; // 모바일 브라우저 주소창 고려한 실제 높이
     let scaledHeight = 852 * scale;
     
     stage.style.left = '50%';
@@ -280,10 +286,13 @@ function resizeGame() {
         let safeTop = cropVirtualY + 5; 
         
         if(closeBtn) closeBtn.style.top = Math.max(16, safeTop) + 'px';
-        if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px'; // 닫기버튼(16)과 헤더(75)의 간격(59) 유지
+        if(headerUI) headerUI.style.top = Math.max(75, safeTop + 59) + 'px';
     }
 }
-window.addEventListener('resize', resizeGame);
+window.addEventListener('resize', () => setTimeout(resizeGame, 100)); // 모바일 딜레이 대응
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resizeGame);
+}
 resizeGame();
 
 // ==========================================
