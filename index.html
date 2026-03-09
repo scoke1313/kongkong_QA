@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식_3.0 (가이드적용)</title>
+    <title>콩콩춘식_3.0 (가이드수정)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -70,7 +70,19 @@
         #rate-board { font-size: 20px; font-weight: 800; color: #2D1D1C; font-family: 'Arial', sans-serif; }
 
         /* --- 게임 요소 & 컨트롤러 --- */
-        #canvas-container { position: absolute; width: 86px !important; height: 138px !important; bottom: 100px; left: 50%; margin-left: -43px; z-index: 10; display: none; pointer-events: none; }
+        /* ★ 춘식이 리브 캔버스 컨테이너 사이즈 조정 및 하단 고정 추가 */
+        #canvas-container { 
+            position: absolute; 
+            width: 82px !important; 
+            height: 138px !important; 
+            bottom: 100px; 
+            left: 50%; 
+            margin-left: -41px; 
+            z-index: 10; 
+            display: none; 
+            pointer-events: none; 
+            transform-origin: bottom center; 
+        }
         canvas { width: 100%; height: 100%; }
         .pickup-effect { position: absolute; width: 160px; height: 80px; background-image: url('effect_pickup.png'); background-size: contain; background-repeat: no-repeat; z-index: 120; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
         .gold-glow { filter: drop-shadow(0 0 15px gold); }
@@ -114,7 +126,7 @@
         
         .f-rate-box { width: 333px; height: 86px; margin: 0 auto 25px; background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; }
         .f-rate-col { flex: 1; text-align: center; position: relative; }
-        .f-rate-col:first-child::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background-color: #F0E2D3; }
+        .f-rate-col:first-child::after { content: absolute; right: 0; top: 15%; height: 70%; width: 1px; background-color: #F0E2D3; }
         .f-rate-label { font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; }
         .f-rate-val { font-size: 22px; font-weight: 800; color: #333; line-height: 1; }
         
@@ -622,9 +634,11 @@ function startGame() {
     initAudio();
     document.getElementById('main-screen').style.display = 'none';
     
+    // 가이드 화면 띄우기
     const guideScreen = document.getElementById('guide-screen');
     guideScreen.style.display = 'block';
 
+    // 가이드 Rive 모션 로드
     guideRive = new rive.Rive({
         src: 'game_guide.riv',
         canvas: document.getElementById('guide-canvas'),
