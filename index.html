@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식_2.9 (타이틀 카운트업 + 0.5초 대기)</title>
+    <title>콩콩춘식_3.0 (가이드적용)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -39,6 +39,10 @@
         #main-canvas { width: 100%; height: 100%; }
         #start-button { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 340px; height: 75px; background-image: url('btn_start.png'); background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; border: none; background-color: transparent; z-index: 2001; }
         
+        /* --- 가이드 화면 --- */
+        #guide-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); z-index: 2200; display: none; cursor: pointer; }
+        #guide-canvas { width: 100%; height: 100%; pointer-events: none; }
+
         /* --- 게임오버 팝업 --- */
         #result-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 3000; display: none; }
         .result-card { position: absolute; top: 50%; left: 50%; width: 348px; background: #FFF; border-radius: 22px; padding: 32px 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); box-sizing: border-box; transform: translate(-50%, calc(-50% + 30px)); opacity: 0; transition: all 0.4s ease-out; }
@@ -188,6 +192,10 @@
     <div id="main-screen" style="display: none;">
         <div id="main-rive-container"><canvas id="main-canvas"></canvas></div>
         <button id="start-button" onclick="startGame()"></button>
+    </div>
+
+    <div id="guide-screen" onclick="finishGuide()" ontouchstart="finishGuide()">
+        <canvas id="guide-canvas"></canvas>
     </div>
 
     <div id="result-screen">
@@ -605,9 +613,39 @@ window.addEventListener('keyup', (e) => { if (e.code === 'ArrowLeft') kbdState.l
 
 function resetInputState() { keys = {}; touchOrder = []; activeTouches = { left: false, right: false }; kbdState = { left: false, right: false }; mouseState = { left: false, right: false }; syncInput(); }
 
+// ==========================================
+// ★ 게임 시작 및 가이드 모션 로직
+// ==========================================
+let guideRive;
+
 function startGame() {
     initAudio();
     document.getElementById('main-screen').style.display = 'none';
+    
+    const guideScreen = document.getElementById('guide-screen');
+    guideScreen.style.display = 'block';
+
+    guideRive = new rive.Rive({
+        src: 'game_guide.riv',
+        canvas: document.getElementById('guide-canvas'),
+        autoplay: true,
+        onLoad: () => guideRive.resizeDrawingSurfaceToCanvas(),
+        onStop: () => finishGuide(),
+        onLoop: () => finishGuide()
+    });
+}
+
+function finishGuide() {
+    const guideScreen = document.getElementById('guide-screen');
+    if (guideScreen.style.display === 'none') return; 
+
+    guideScreen.style.display = 'none';
+    if (guideRive) guideRive.cleanup();
+
+    startActualGame();
+}
+
+function startActualGame() {
     document.getElementById('ingame-ui').style.display = 'block';
     document.getElementById('canvas-container').style.display = 'block';
     document.getElementById('touch-zone').style.display = 'block'; 
