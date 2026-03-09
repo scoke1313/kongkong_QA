@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
     
-    <title>콩콩춘식 - 최종 완벽판 (0.6초 대기 후 착지+바로점프)</title>
+    <title>콩콩춘식 - 최종 완벽판 (타이틀 카운트업 + 0.6초 대기)</title>
 
     <meta property="og:title" content="콩콩춘식 챌린지!">
     <meta property="og:description" content="춘식이와 함께 나만의 우대금리를 모아보세요!">
@@ -103,7 +103,9 @@
         .f-sns-btn { position: absolute; right: 0; bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
         .f-header { text-align: center; margin-top: 70px; margin-bottom: 30px; padding: 0 24px; box-sizing: border-box;}
-        .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; } 
+        
+        /* ★ 타이틀 숫자 변경 시 덜컹거림을 방지하기 위한 tabular-nums 적용 */
+        .f-main-title { font-size: 34px; font-weight: 900; line-height: 1.23; color: #222; -webkit-text-stroke: 0.5px currentColor; font-variant-numeric: tabular-nums; } 
         .f-highlight { color: #E2786F; -webkit-text-stroke: 0.5px currentColor; } 
         
         .f-rate-box { width: 333px; height: 86px; margin: 0 auto 25px; background: #FFF9F2; border-radius: 20px; display: flex; align-items: center; box-sizing: border-box; }
@@ -142,7 +144,7 @@
 
         .f-graph-element-group { position: absolute; left: 71px; width: 286px; bottom: 0; transform: translateY(50%); display: flex; align-items: center; justify-content: flex-start; pointer-events: none; }
         .f-graph-line { flex: 1; height: 0; border-top: 2px solid #E2786F; }
-        .f-graph-badge { width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box; }
+        .f-graph-badge { width: 81px; height: 35px; flex-shrink: 0; background: #E2786F; color: #FFF; border-radius: 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: inherit; margin-left: -1px; padding-left: 1px; box-sizing: border-box; font-variant-numeric: tabular-nums; }
 
         .f-promo-section { text-align: center; margin-top: 30px; margin-bottom: 46px; } 
         .f-tag { display: inline-flex; align-items: center; justify-content: center; width: 136px; height: 37px; background: #4A3E35; color: #FFF; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; box-sizing: border-box; } 
@@ -224,7 +226,7 @@
                 
                 <div class="f-header">
                     <div class="f-main-title">
-                        <span class="f-highlight"><span id="f-total-rate-text">3.85%</span> 적금을</span><br>만들 수 있어요
+                        <span class="f-highlight"><span id="f-total-rate-text">0.00%</span> 적금을</span><br>만들 수 있어요
                     </div>
                 </div>
                 
@@ -664,8 +666,8 @@ function showResult() {
     setTimeout(() => screen.classList.add('show'), 10);
 }
 
-// ★ 핑크캡슐 숫자 카운트업 함수
-function animateBadgeRate(element, start, end, duration) {
+// ★ 숫자 카운트업 (타이틀과 핑크캡슐 공용)
+function animateRate(element, start, end, duration) {
     let startTimestamp = null;
     const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
 
@@ -689,11 +691,12 @@ function showFinalEventPage() {
     document.getElementById('result-screen').style.display = 'none';
     document.getElementById('result-screen').classList.remove('show');
     
-    document.getElementById('f-total-rate-text').innerText = totalRateGlobal.toFixed(2) + '%';
     document.getElementById('f-earned-rate-text').innerText = '연 ' + earnedRateGlobal.toFixed(2) + '%';
     
-    // 뱃지 초기값 0% 설정
+    // ★ 1. 타이틀과 뱃지 금리 초기화 (0%)
+    const titleRate = document.getElementById('f-total-rate-text');
     const badgeRate = document.getElementById('f-badge-rate');
+    titleRate.innerText = '0.00%';
     badgeRate.innerText = '0.00%';
 
     const weeklyDeposit = 100000;
@@ -711,10 +714,10 @@ function showFinalEventPage() {
     const dynamicWrapper = document.getElementById('graph-dynamic-wrapper');
     const dustImg = document.querySelector('.f-graph-dust');
     
-    // ★ 1. 처음엔 20px 위에서 대기 (15+5)
+    // 초기 위치: 20px 위에서 대기
     dynamicWrapper.style.transition = 'none';
     dynamicWrapper.style.bottom = (baseBottomOffset + 20) + 'px';
-    dustImg.style.opacity = '0'; // 먼지 숨김
+    dustImg.style.opacity = '0'; 
 
     const finalPage = document.getElementById('final-event-page');
     finalPage.style.display = 'block';
@@ -726,7 +729,7 @@ function showFinalEventPage() {
     resultRive = new rive.Rive({
         src: 'kongsik_result.riv',
         canvas: document.getElementById('result-char-canvas'),
-        autoplay: false, // ★ 자동재생 끄기 (0.6초 대기 후 재생)
+        autoplay: false, // 자동재생 끄기 (0.6초 대기 후 재생)
         stateMachines: 'State Machine 1',
         layout: new rive.Layout({
             fit: rive.Fit.contain,
@@ -737,7 +740,7 @@ function showFinalEventPage() {
             
             // ★ 3. 로드 완료 후 0.6초 대기하고 애니메이션 시퀀스 시작
             setTimeout(() => {
-                // ★ 0.6초 대기 끝! 리브 모션 재생 시작
+                // 0.6초 대기 끝! 리브 모션 재생 시작
                 resultRive.play('State Machine 1');
 
                 // [1단계] 위에서부터 느리게 착지 (0.5초 ease-in)
@@ -749,15 +752,16 @@ function showFinalEventPage() {
                     dynamicWrapper.style.transition = 'bottom 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     dynamicWrapper.style.bottom = finalBottomPx + 'px';
                     
-                    // 춘식이 튀어오르는 시간(1.5초 = 1500ms)에 맞춰 숫자 카운트업 실행
-                    animateBadgeRate(badgeRate, 0, totalRateGlobal, 1500);
+                    // 타이틀 숫자와 핑크캡슐 숫자 동시에 카운트업 실행
+                    animateRate(titleRate, 0, totalRateGlobal, 1500);
+                    animateRate(badgeRate, 0, totalRateGlobal, 1500);
 
                     // 모션이 거의 끝날 즈음(약 1초 뒤) 먼지 나타나기
                     setTimeout(() => {
                         dustImg.style.opacity = '1';
                     }, 1000);
                     
-                }, 500); // ★ 1단계 착지 시간(500ms)과 동일하게 맞춤 (기다림 없이 튀어오름)
+                }, 500); // 1단계 착지 시간(500ms)과 동일하게 맞춤 (기다림 없이 튀어오름)
             }, 600); // ★ 결과창 진입 후 0.6초 대기
         }
     });
